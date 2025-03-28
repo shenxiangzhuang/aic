@@ -47,12 +47,6 @@ Generate a commit message based on your staged changes. Customize the prompt, AP
 aic generate --prompt "Write commit messages in conventional commit format" --api-base "https://api.openai.com" --model "gpt-4-turbo"
 ```
 
-To automatically execute the commit command after generating the message, use the `--execute` (or `-e`) flag:
-
-```bash
-aic generate --execute
-```
-
 #### Configuration Commands
 
 Manage configuration settings for your project.
@@ -101,10 +95,8 @@ Manage configuration settings for your project.
 2. **Generate a Commit Message:**
    Run `aic` (or `aic generate`) to have the tool analyze your staged changes and produce a commit message using AI.
 
-3. **Review and Execute Command:**
-   The generated commit command is displayed. You can either:
-   - Confirm execution (using the `--execute` flag or during interactive prompt).
-   - Modify the commit message using the provided editor (configured via the `EDITOR` environment variable).
+3. **Review Command:**
+   The generated commit command is displayed. You can modify the commit message using the provided editor (configured via the `EDITOR` environment variable).
 
 ## Editing Commit Message
 
