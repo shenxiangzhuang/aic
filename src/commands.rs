@@ -339,7 +339,6 @@ mod tests {
         // Check for expected output (e.g., "Commit created successfully!")
     }
 
-
     #[test]
     fn test_edit_commit_message() {
         // Set up a temporary environment for the test
