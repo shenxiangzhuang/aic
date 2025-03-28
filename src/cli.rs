@@ -24,9 +24,7 @@ pub struct Cli {
         long,
         help = "Base URL for the OpenAI-compatible API",
         long_help = "Specify a custom base URL for the OpenAI-compatible API.\n\
-        This allows using alternative providers like DeepSeek or local models.\n\
-        Can also be set with AIC_API_BASE_URL or OPENAI_API_BASE_URL environment variable.\n\
-        Default: https://api.openai.com"
+        This allows using alternative providers like DeepSeek or local models."
     )]
     pub api_base: Option<String>,
 
@@ -34,9 +32,7 @@ pub struct Cli {
     #[arg(
         long,
         help = "Model to use for generating commit messages",
-        long_help = "Specify the model to use for generating commit messages.\n\
-        Can also be set with AIC_MODEL environment variable.\n\
-        Default: gpt-3.5-turbo"
+        long_help = "Specify the model to use for generating commit messages."
     )]
     pub model: Option<String>,
 
@@ -69,9 +65,7 @@ pub enum Commands {
             long,
             help = "Base URL for the OpenAI-compatible API",
             long_help = "Specify a custom base URL for the OpenAI-compatible API.\n\
-            This allows using alternative providers like DeepSeek or local models.\n\
-            Can also be set with AIC_API_BASE_URL or OPENAI_API_BASE_URL environment variable.\n\
-            Default: https://api.openai.com"
+            This allows using alternative providers like DeepSeek or local models."
         )]
         api_base: Option<String>,
 
@@ -79,12 +73,35 @@ pub enum Commands {
         #[arg(
             long,
             help = "Model to use for generating commit messages",
-            long_help = "Specify the model to use for generating commit messages.\n\
-            Can also be set with AIC_MODEL environment variable.\n\
-            Default: gpt-3.5-turbo"
+            long_help = "Specify the model to use for generating commit messages."
         )]
         model: Option<String>,
     },
+
+    /// Manage configuration settings
+    #[command(subcommand)]
+    Config(ConfigCommands),
+}
+
+#[derive(Subcommand)]
+pub enum ConfigCommands {
+    /// Get a configuration value
+    Get {
+        /// Configuration key to get (api_token, api_base_url, model, default_prompt)
+        key: String,
+    },
+
+    /// Set a configuration value
+    Set {
+        /// Configuration key to set (api_token, api_base_url, model, default_prompt)
+        key: String,
+
+        /// Value to set for the key (omit to unset)
+        value: Option<String>,
+    },
+
+    /// List all configuration values
+    List,
 }
 
 pub fn parse_args() -> Cli {
