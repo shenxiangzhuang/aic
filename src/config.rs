@@ -2,14 +2,19 @@ use anyhow::{Context, Result};
 use std::env;
 
 /// Get the API token from environment variables
+/// Checks AIC_API_TOKEN first, then falls back to OPENAI_API_TOKEN
 pub fn get_api_token() -> Result<String> {
     env::var("AIC_API_TOKEN")
-        .context("API token not found. Please set the AIC_API_TOKEN environment variable.")
+        .or_else(|_| env::var("OPENAI_API_TOKEN"))
+        .context("API token not found. Please set either AIC_API_TOKEN or OPENAI_API_TOKEN environment variable.")
 }
 
-/// Get the API base URL from environment variable or use default
+/// Get the API base URL from environment variables or use default
+/// Checks AIC_API_BASE_URL first, then falls back to OPENAI_API_BASE_URL
 pub fn get_api_base_url() -> String {
-    env::var("AIC_API_BASE_URL").unwrap_or_else(|_| "https://api.openai.com".to_string())
+    env::var("AIC_API_BASE_URL")
+        .or_else(|_| env::var("OPENAI_API_BASE_URL"))
+        .unwrap_or_else(|_| "https://api.openai.com".to_string())
 }
 
 /// Get the model name from environment variable or use default

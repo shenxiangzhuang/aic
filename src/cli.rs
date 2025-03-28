@@ -19,18 +19,18 @@ pub struct Cli {
     )]
     pub prompt: Option<String>,
 
-    /// Base URL for the OpenAI-compatible API (default: https://api.openai.com)
+    /// Base URL for the OpenAI-compatible API
     #[arg(
         long,
         help = "Base URL for the OpenAI-compatible API",
         long_help = "Specify a custom base URL for the OpenAI-compatible API.\n\
         This allows using alternative providers like DeepSeek or local models.\n\
-        Can also be set with AIC_API_BASE_URL environment variable.\n\
+        Can also be set with AIC_API_BASE_URL or OPENAI_API_BASE_URL environment variable.\n\
         Default: https://api.openai.com"
     )]
     pub api_base: Option<String>,
 
-    /// Model to use for generating commit messages (default: gpt-3.5-turbo)
+    /// Model to use for generating commit messages
     #[arg(
         long,
         help = "Model to use for generating commit messages",
@@ -64,18 +64,18 @@ pub enum Commands {
         )]
         prompt: Option<String>,
 
-        /// Base URL for the OpenAI-compatible API (default: https://api.openai.com)
+        /// Base URL for the OpenAI-compatible API
         #[arg(
             long,
             help = "Base URL for the OpenAI-compatible API",
             long_help = "Specify a custom base URL for the OpenAI-compatible API.\n\
             This allows using alternative providers like DeepSeek or local models.\n\
-            Can also be set with AIC_API_BASE_URL environment variable.\n\
+            Can also be set with AIC_API_BASE_URL or OPENAI_API_BASE_URL environment variable.\n\
             Default: https://api.openai.com"
         )]
         api_base: Option<String>,
 
-        /// Model to use for generating commit messages (default: gpt-3.5-turbo)
+        /// Model to use for generating commit messages
         #[arg(
             long,
             help = "Model to use for generating commit messages",
