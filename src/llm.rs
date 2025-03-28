@@ -29,12 +29,14 @@ pub async fn generate_commit_message(
     diff: &str,
     system_prompt: &str,
     api_token: &str,
+    api_base_url: &str,
+    model: &str,
 ) -> Result<String> {
     let client = Client::new();
 
     // Prepare the request to OpenAI API
     let request = OpenAIRequest {
-        model: "gpt-3.5-turbo".to_string(),
+        model: model.to_string(),
         messages: vec![
             Message {
                 role: "system".to_string(),
@@ -47,22 +49,29 @@ pub async fn generate_commit_message(
         ],
     };
 
-    // Send the request to OpenAI API
+    // Construct the full API endpoint URL
+    let endpoint = format!("{}/v1/chat/completions", api_base_url.trim_end_matches('/'));
+
+    // Send the request to the API
     let response = client
-        .post("https://api.openai.com/v1/chat/completions")
+        .post(&endpoint)
         .header("Authorization", format!("Bearer {}", api_token))
         .header("Content-Type", "application/json")
         .json(&request)
         .send()
         .await
-        .context("Failed to send request to OpenAI API")?;
+        .context(format!("Failed to send request to API at {}", endpoint))?;
 
     // Parse the response
     let response_status = response.status();
     let response_text = response.text().await?;
 
     if !response_status.is_success() {
-        return Err(anyhow::anyhow!("API request failed: {}", response_text));
+        return Err(anyhow::anyhow!(
+            "API request failed ({}): {}",
+            response_status,
+            response_text
+        ));
     }
 
     let response: OpenAIResponse =

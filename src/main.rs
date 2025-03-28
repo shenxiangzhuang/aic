@@ -7,7 +7,11 @@ use anyhow::{Context, Result};
 use cli::Commands;
 use colored::Colorize;
 
-async fn generate_commit(prompt: Option<String>) -> Result<()> {
+async fn generate_commit(
+    prompt: Option<String>,
+    api_base: Option<String>,
+    model: Option<String>,
+) -> Result<()> {
     println!("{}", "Generating commit message...".blue());
 
     // Get git diff
@@ -28,11 +32,23 @@ async fn generate_commit(prompt: Option<String>) -> Result<()> {
     // Get API token
     let api_token = config::get_api_token()?;
 
-    // Use custom prompt or default
+    // Use custom configurations or defaults
     let system_prompt = prompt.unwrap_or_else(|| config::get_default_prompt());
+    let api_base_url = api_base.unwrap_or_else(|| config::get_api_base_url());
+    let model_name = model.unwrap_or_else(|| config::get_model());
+
+    // Print configuration information
+    println!("{} {}", "Using model:".blue(), model_name);
 
     // Generate commit message
-    let commit_message = llm::generate_commit_message(&diff, &system_prompt, &api_token).await?;
+    let commit_message = llm::generate_commit_message(
+        &diff,
+        &system_prompt,
+        &api_token,
+        &api_base_url,
+        &model_name,
+    )
+    .await?;
 
     // Print the result
     println!("\n{}", "Generated commit message:".green());
@@ -51,12 +67,16 @@ async fn main() -> Result<()> {
 
     // Process commands or default behavior
     match &cli.command {
-        Some(Commands::Generate { prompt }) => {
-            generate_commit(prompt.clone()).await?;
+        Some(Commands::Generate {
+            prompt,
+            api_base,
+            model,
+        }) => {
+            generate_commit(prompt.clone(), api_base.clone(), model.clone()).await?;
         }
         None => {
             // No subcommand provided, default to generate behavior
-            generate_commit(cli.prompt).await?;
+            generate_commit(cli.prompt, cli.api_base, cli.model).await?;
         }
     }
 
