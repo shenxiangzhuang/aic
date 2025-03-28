@@ -100,6 +100,25 @@ pub enum ConfigCommands {
         value: Option<String>,
     },
 
+    /// Set multiple configuration values at once for quick setup
+    Setup {
+        /// API token for authentication
+        #[arg(long, help = "API token for authentication")]
+        api_token: Option<String>,
+
+        /// Base URL for the OpenAI-compatible API
+        #[arg(long, help = "Base URL for the OpenAI-compatible API")]
+        api_base_url: Option<String>,
+
+        /// Model to use for generating commit messages
+        #[arg(long, help = "Model to use for generating commit messages")]
+        model: Option<String>,
+
+        /// Default system prompt for commit message generation
+        #[arg(long, help = "Default system prompt for commit message generation")]
+        default_prompt: Option<String>,
+    },
+
     /// List all configuration values
     List,
 }

@@ -4,7 +4,7 @@ mod git;
 mod llm;
 
 use anyhow::{Context, Result};
-use cli::{Commands, ConfigCommands};
+use cli::{Cli, Commands, ConfigCommands};
 use colored::Colorize;
 use config::Config;
 
@@ -74,6 +74,50 @@ async fn handle_config_command(cmd: &ConfigCommands) -> Result<()> {
                 println!("Set {} to: {}", key, val);
             } else {
                 println!("Unset {}", key);
+            }
+        }
+        ConfigCommands::Setup {
+            api_token,
+            api_base_url,
+            model,
+            default_prompt,
+        } => {
+            let mut config = Config::load()?;
+            let mut changes = 0;
+
+            // Update each value if provided
+            if let Some(token) = api_token {
+                config.set("api_token", Some(token.clone()))?;
+                println!("Set api_token to: {}", token);
+                changes += 1;
+            }
+
+            if let Some(url) = api_base_url {
+                config.set("api_base_url", Some(url.clone()))?;
+                println!("Set api_base_url to: {}", url);
+                changes += 1;
+            }
+
+            if let Some(model_name) = model {
+                config.set("model", Some(model_name.clone()))?;
+                println!("Set model to: {}", model_name);
+                changes += 1;
+            }
+
+            if let Some(prompt) = default_prompt {
+                config.set("default_prompt", Some(prompt.clone()))?;
+                println!("Set default_prompt to: {}", prompt);
+                changes += 1;
+            }
+
+            if changes == 0 {
+                println!(
+                    "{}",
+                    "No configuration values were provided to set.".yellow()
+                );
+                println!("Usage: aic config setup --api-token <TOKEN> --api-base-url <URL> --model <MODEL>");
+            } else {
+                println!("{}", "Configuration updated successfully.".green());
             }
         }
         ConfigCommands::List => {
