@@ -14,7 +14,7 @@ A CLI tool that uses AI to generate meaningful commit messages by analyzing your
 1. Install the tool:
 
 ```bash
-cargo install --git https://github.com/yourusername/aic.git
+cargo install --git https://github.com/shenxiangzhuang/aic.git
 ```
 
 2. Configure your API token:
