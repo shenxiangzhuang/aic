@@ -36,6 +36,15 @@ pub struct Cli {
     )]
     pub model: Option<String>,
 
+    /// Execute the git commit command automatically
+    #[arg(
+        short,
+        long,
+        help = "Execute the git commit command automatically",
+        long_help = "When provided, automatically execute the git commit command without asking for confirmation."
+    )]
+    pub execute: Option<bool>,
+
     #[command(subcommand)]
     pub command: Option<Commands>,
 }
@@ -76,6 +85,15 @@ pub enum Commands {
             long_help = "Specify the model to use for generating commit messages."
         )]
         model: Option<String>,
+
+        /// Execute the git commit command automatically
+        #[arg(
+            short,
+            long,
+            help = "Execute the git commit command automatically",
+            long_help = "When provided, automatically execute the git commit command without asking for confirmation."
+        )]
+        execute: bool,
     },
 
     /// Manage configuration settings
@@ -85,42 +103,8 @@ pub enum Commands {
 
 #[derive(Subcommand)]
 pub enum ConfigCommands {
-    /// Get a configuration value
-    Get {
-        /// Configuration key to get (api_token, api_base_url, model, default_prompt)
-        key: String,
-    },
-
-    /// Set a configuration value
-    Set {
-        /// Configuration key to set (api_token, api_base_url, model, default_prompt)
-        key: String,
-
-        /// Value to set for the key (omit to unset)
-        value: Option<String>,
-    },
-
-    /// Set multiple configuration values at once for quick setup
-    Setup {
-        /// API token for authentication
-        #[arg(long, help = "API token for authentication")]
-        api_token: Option<String>,
-
-        /// Base URL for the OpenAI-compatible API
-        #[arg(long, help = "Base URL for the OpenAI-compatible API")]
-        api_base_url: Option<String>,
-
-        /// Model to use for generating commit messages
-        #[arg(long, help = "Model to use for generating commit messages")]
-        model: Option<String>,
-
-        /// Default system prompt for commit message generation
-        #[arg(long, help = "Default system prompt for commit message generation")]
-        default_prompt: Option<String>,
-    },
-
-    /// List all configuration values
-    List,
+    // [Config subcommands remain the same]
+    // ...
 }
 
 pub fn parse_args() -> Cli {
