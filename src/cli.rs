@@ -8,8 +8,19 @@ use clap::{Parser, Subcommand};
     long_about = "A CLI tool that uses AI to generate meaningful commit messages based on git diffs."
 )]
 pub struct Cli {
+    /// Custom system prompt for commit message style when used without subcommand
+    #[arg(
+        short,
+        long,
+        help = "Custom system prompt for commit message style",
+        long_help = "Provide a custom instruction to guide the AI in generating commit messages.\n\
+        For example: \"Write commit messages in conventional commit format\" or\n\
+        \"Focus on explaining why changes were made rather than what was changed.\""
+    )]
+    pub prompt: Option<String>,
+
     #[command(subcommand)]
-    pub command: Commands,
+    pub command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
