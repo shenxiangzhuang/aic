@@ -103,8 +103,42 @@ pub enum Commands {
 
 #[derive(Subcommand)]
 pub enum ConfigCommands {
-    // [Config subcommands remain the same]
-    // ...
+    /// Get a configuration value
+    Get {
+        /// Configuration key to get (api_token, api_base_url, model, default_prompt)
+        key: String,
+    },
+
+    /// Set a configuration value
+    Set {
+        /// Configuration key to set (api_token, api_base_url, model, default_prompt)
+        key: String,
+
+        /// Value to set for the key (omit to unset)
+        value: Option<String>,
+    },
+
+    /// Set multiple configuration values at once for quick setup
+    Setup {
+        /// API token for authentication
+        #[arg(long, help = "API token for authentication")]
+        api_token: Option<String>,
+
+        /// Base URL for the OpenAI-compatible API
+        #[arg(long, help = "Base URL for the OpenAI-compatible API")]
+        api_base_url: Option<String>,
+
+        /// Model to use for generating commit messages
+        #[arg(long, help = "Model to use for generating commit messages")]
+        model: Option<String>,
+
+        /// Default system prompt for commit message generation
+        #[arg(long, help = "Default system prompt for commit message generation")]
+        default_prompt: Option<String>,
+    },
+
+    /// List all configuration values
+    List,
 }
 
 pub fn parse_args() -> Cli {

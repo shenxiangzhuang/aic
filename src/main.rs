@@ -4,7 +4,7 @@ mod git;
 mod llm;
 
 use anyhow::{Context, Result};
-use cli::{Cli, Commands, ConfigCommands};
+use cli::{Commands, ConfigCommands}; // Removed unused Cli import
 use colored::Colorize;
 use config::Config;
 use std::io::{self, Write};
@@ -51,8 +51,8 @@ async fn generate_commit(
             .await?;
 
     // Print the result
-    // println!("\n{}", "Generated commit message:".green());
-    // println!("{}", commit_message);
+    println!("\n{}", "Generated commit message:".green());
+    println!("{}", commit_message);
 
     // Format git commit command for display
     let escaped_message = commit_message.replace("\"", "\\\"");
@@ -116,9 +116,93 @@ async fn generate_commit(
     Ok(())
 }
 
-async fn handle_config_command(cmd: &ConfigCommands) -> Result<()> {
-    // [Config command handler implementation remains the same]
-    // ...
+async fn handle_config_command(config_cmd: &ConfigCommands) -> Result<()> {
+    // Renamed parameter to avoid warning
+    match config_cmd {
+        ConfigCommands::Get { key } => {
+            let config = Config::load()?;
+
+            if let Some(value) = config.get(key) {
+                println!("{}: {}", key, value);
+            } else {
+                println!("{}: <not set>", key);
+            }
+        }
+        ConfigCommands::Set { key, value } => {
+            let mut config = Config::load()?;
+
+            config.set(key, value.clone())?;
+
+            if let Some(val) = value {
+                println!("Set {} to: {}", key, val);
+            } else {
+                println!("Unset {}", key);
+            }
+        }
+        ConfigCommands::Setup {
+            api_token,
+            api_base_url,
+            model,
+            default_prompt,
+        } => {
+            let mut config = Config::load()?;
+            let mut changes = 0;
+
+            // Update each value if provided
+            if let Some(token) = api_token {
+                config.set("api_token", Some(token.clone()))?;
+                println!("Set api_token to: {}", token);
+                changes += 1;
+            }
+
+            if let Some(url) = api_base_url {
+                config.set("api_base_url", Some(url.clone()))?;
+                println!("Set api_base_url to: {}", url);
+                changes += 1;
+            }
+
+            if let Some(model_name) = model {
+                config.set("model", Some(model_name.clone()))?;
+                println!("Set model to: {}", model_name);
+                changes += 1;
+            }
+
+            if let Some(prompt) = default_prompt {
+                config.set("default_prompt", Some(prompt.clone()))?;
+                println!("Set default_prompt to: {}", prompt);
+                changes += 1;
+            }
+
+            if changes == 0 {
+                println!(
+                    "{}",
+                    "No configuration values were provided to set.".yellow()
+                );
+                println!("Usage: aic config setup --api-token <TOKEN> --api-base-url <URL> --model <MODEL>");
+            } else {
+                println!("{}", "Configuration updated successfully.".green());
+            }
+        }
+        ConfigCommands::List => {
+            let config = Config::load()?;
+
+            println!("{}", "Configuration:".green());
+            println!(
+                "api_token: {}",
+                config.api_token.as_deref().unwrap_or("<not set>")
+            );
+            println!("api_base_url: {}", config.get_api_base_url());
+            println!("model: {}", config.get_model());
+            println!("default_prompt: {}", config.get_default_prompt());
+
+            println!("\n{}", "Configuration file location:".blue());
+            if let Ok(path) = Config::config_path() {
+                println!("{}", path.display());
+            } else {
+                println!("<unknown>");
+            }
+        }
+    }
 
     Ok(())
 }
@@ -152,12 +236,12 @@ async fn main() -> Result<()> {
             handle_config_command(config_cmd).await?;
         }
         None => {
-            // No subcommand provided, default to generate behavior
+            // No subcommand provided, default to generate behavior using cli directly
             generate_commit(
                 &config,
-                cli.prompt,
-                cli.api_base,
-                cli.model,
+                cli.prompt.clone(),
+                cli.api_base.clone(),
+                cli.model.clone(),
                 cli.execute.unwrap_or(false),
             )
             .await?;

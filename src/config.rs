@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::{Read, Write};
-use std::path::PathBuf;
+use std::path::PathBuf; // Removed unused Path import
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -87,6 +87,8 @@ impl Config {
         Ok(())
     }
 
+    // Set a configuration value by key name
+    #[allow(dead_code)] // Used by CLI command handlers
     pub fn set(&mut self, key: &str, value: Option<String>) -> Result<()> {
         match key {
             "api_token" => self.api_token = value,
@@ -100,6 +102,8 @@ impl Config {
         Ok(())
     }
 
+    // Get a configuration value by key name
+    #[allow(dead_code)] // Used by CLI command handlers
     pub fn get(&self, key: &str) -> Option<&String> {
         match key {
             "api_token" => self.api_token.as_ref(),
