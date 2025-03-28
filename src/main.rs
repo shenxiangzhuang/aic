@@ -4,7 +4,7 @@ mod git;
 mod llm;
 
 use anyhow::{Context, Result};
-use cli::{Commands, ConfigCommands}; // Removed unused Cli import
+use cli::{Commands, ConfigCommands};
 use colored::Colorize;
 use config::Config;
 use std::io::{self, Write};
@@ -77,14 +77,18 @@ async fn generate_commit(
             }
         }
     } else {
-        // Ask if the user wants to execute the command
-        println!("\n{}", "Execute this commit command? [y/N]: ".yellow());
+        // Ask if the user wants to execute the command - on same line with Y as default
+        print!("\n{} ", "Execute this commit command? [Y/n]:".yellow());
         io::stdout().flush()?;
 
         let mut input = String::new();
         io::stdin().read_line(&mut input)?;
 
-        if input.trim().to_lowercase() == "y" {
+        // Execute if input is empty (just Enter) or starts with 'y'/'Y'
+        let should_execute =
+            input.trim().is_empty() || input.trim().to_lowercase().starts_with('y');
+
+        if should_execute {
             // Execute the git commit command
             let status = Command::new("git")
                 .arg("commit")
