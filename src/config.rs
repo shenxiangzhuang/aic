@@ -142,3 +142,74 @@ impl Config {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+    use std::env;
+
+    fn setup_test_env() -> TempDir {
+        let temp_dir = TempDir::new().unwrap();
+        env::set_var("HOME", temp_dir.path());
+        temp_dir
+    }
+
+    #[test]
+    fn test_default_config() {
+        let config = Config::default();
+        assert!(config.api_token.is_none());
+        assert_eq!(config.api_base_url.as_deref(), Some("https://api.openai.com"));
+        assert_eq!(config.model.as_deref(), Some("gpt-3.5-turbo"));
+        assert!(config.default_prompt.is_some());
+    }
+
+    #[test]
+    fn test_set_and_get() {
+        let mut config = Config::default();
+        
+        // Test setting values
+        config.set("api_token", Some("test_token".to_string())).unwrap();
+        config.set("model", Some("gpt-4".to_string())).unwrap();
+        
+        // Test getting values
+        assert_eq!(config.get("api_token").unwrap(), "test_token");
+        assert_eq!(config.get("model").unwrap(), "gpt-4");
+        
+        // Test setting to None
+        config.set("api_token", None).unwrap();
+        assert!(config.get("api_token").is_none());
+        
+        // Test invalid key
+        assert!(config.set("invalid_key", Some("value".to_string())).is_err());
+        assert!(config.get("invalid_key").is_none());
+    }
+
+    #[test]
+    fn test_save_and_load() {
+        let _temp_dir = setup_test_env();
+        
+        // Create and save config
+        let mut config = Config::default();
+        config.api_token = Some("test_token".to_string());
+        config.save().unwrap();
+        
+        // Load and verify
+        let loaded_config = Config::load().unwrap();
+        assert_eq!(loaded_config.api_token, Some("test_token".to_string()));
+        assert_eq!(loaded_config.api_base_url, config.api_base_url);
+        assert_eq!(loaded_config.model, config.model);
+        assert_eq!(loaded_config.default_prompt, config.default_prompt);
+    }
+
+    #[test]
+    fn test_getter_methods() {
+        let mut config = Config::default();
+        config.api_token = Some("test_token".to_string());
+        
+        assert_eq!(config.get_api_token().unwrap(), "test_token");
+        assert_eq!(config.get_api_base_url(), "https://api.openai.com");
+        assert_eq!(config.get_model(), "gpt-3.5-turbo");
+        assert!(config.get_default_prompt().contains("You are a helpful assistant"));
+    }
+}
