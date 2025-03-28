@@ -45,7 +45,7 @@ async fn main() -> Result<()> {
                 cli.prompt.clone(),
                 cli.api_base.clone(),
                 cli.model.clone(),
-                cli.execute.unwrap_or(false),
+                cli.execute,
             )
             .await?;
         }

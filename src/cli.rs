@@ -43,7 +43,7 @@ pub struct Cli {
         help = "Execute the git commit command automatically",
         long_help = "When provided, automatically execute the git commit command without asking for confirmation."
     )]
-    pub execute: Option<bool>,
+    pub execute: bool,
 
     #[command(subcommand)]
     pub command: Option<Commands>,
