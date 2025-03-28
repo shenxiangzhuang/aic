@@ -7,6 +7,8 @@ use anyhow::{Context, Result};
 use cli::{Commands, ConfigCommands};
 use colored::Colorize;
 use config::Config;
+use std::env;
+use std::fs;
 use std::io::{self, Write};
 use std::process::Command;
 
@@ -80,7 +82,7 @@ async fn generate_commit(
         let status = Command::new("git")
             .arg("commit")
             .arg("-m")
-            .arg(commit_message)
+            .arg(&commit_message)
             .status()
             .context("Failed to execute git commit command")?;
 
@@ -93,25 +95,22 @@ async fn generate_commit(
             }
         }
     } else {
-        // Ask if the user wants to execute the command - on same line with Y as default
-        print!("\n{} ", "Execute this commit? [Y/n]:".yellow().bold());
+        // Present options including a new "modify" option
+        print!("\n{} ", "Execute this commit? [Y/m/n]:".yellow().bold());
         io::stdout().flush()?;
 
         let mut input = String::new();
         io::stdin().read_line(&mut input)?;
+        let input = input.trim().to_lowercase();
 
-        // Execute if input is empty (just Enter) or starts with 'y'/'Y'
-        let should_execute =
-            input.trim().is_empty() || input.trim().to_lowercase().starts_with('y');
-
-        if should_execute {
+        if input.is_empty() || input.starts_with('y') {
+            // Execute directly
             println!("{}", "🚀 Executing git commit...".blue());
 
-            // Execute the git commit command
             let status = Command::new("git")
                 .arg("commit")
                 .arg("-m")
-                .arg(commit_message)
+                .arg(&commit_message)
                 .status()
                 .context("Failed to execute git commit command")?;
 
@@ -123,6 +122,65 @@ async fn generate_commit(
                     println!("Exit code: {}", code);
                 }
             }
+        } else if input.starts_with('m') {
+            // Modify the message before committing
+            println!(
+                "{}",
+                "✏️  Opening editor to modify commit message...".blue()
+            );
+
+            // Create a temporary file with the commit message
+            let temp_dir = env::temp_dir();
+            let temp_file_path = temp_dir.join("aic_commit_message.txt");
+            fs::write(&temp_file_path, &commit_message)
+                .context("Failed to create temporary file for editing")?;
+
+            // Open the editor for modification
+            let editor = env::var("EDITOR").unwrap_or_else(|_| "nano".to_string());
+
+            let edit_status = Command::new(&editor)
+                .arg(&temp_file_path)
+                .status()
+                .context(format!("Failed to open editor ({})", editor))?;
+
+            if !edit_status.success() {
+                return Err(anyhow::anyhow!("Editor exited with non-zero status"));
+            }
+
+            // Read the modified message
+            let modified_message = fs::read_to_string(&temp_file_path)
+                .context("Failed to read modified commit message")?;
+
+            // Clean up the temporary file
+            let _ = fs::remove_file(&temp_file_path);
+
+            // Execute git commit with the modified message
+            println!(
+                "{}",
+                "🚀 Executing git commit with modified message...".blue()
+            );
+
+            let status = Command::new("git")
+                .arg("commit")
+                .arg("-m")
+                .arg(&modified_message)
+                .status()
+                .context("Failed to execute git commit command")?;
+
+            if status.success() {
+                println!("{}", "🎉 Commit created successfully!".green().bold());
+            } else {
+                println!("{}", "❌ Git commit command failed:".red().bold());
+                if let Some(code) = status.code() {
+                    println!("Exit code: {}", code);
+                }
+            }
+        } else if input.starts_with('n') {
+            println!("{}", "📝 Command not executed.".blue());
+            println!("{}", "You can copy and modify the command above.".dimmed());
+        } else {
+            println!("{}", "⚠️  Invalid option. Command not executed.".yellow());
+            println!("{}", "You can copy and modify the command above.".dimmed());
         }
     }
 
