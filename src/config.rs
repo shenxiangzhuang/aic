@@ -157,7 +157,7 @@ mod tests {
 
     #[test]
     fn test_default_config() {
-        let config = Config::default();
+        let config: Config = Config::default();
         assert!(config.api_token.is_none());
         assert_eq!(config.api_base_url.as_deref(), Some("https://api.openai.com"));
         assert_eq!(config.model.as_deref(), Some("gpt-3.5-turbo"));
@@ -166,6 +166,7 @@ mod tests {
 
     #[test]
     fn test_set_and_get() {
+        let _temp_dir = setup_test_env(); // Use a temporary directory for testing
         let mut config = Config::default();
         
         // Test setting values
@@ -187,7 +188,7 @@ mod tests {
 
     #[test]
     fn test_save_and_load() {
-        let _temp_dir = setup_test_env();
+        let _temp_dir = setup_test_env(); // Use a temporary directory for testing
         
         // Create and save config
         let mut config = Config::default();
