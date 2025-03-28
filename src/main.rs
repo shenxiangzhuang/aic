@@ -54,7 +54,7 @@ async fn generate_commit(
     let escaped_message = commit_message.replace("\"", "\\\"");
     let commit_command = format!("git commit -m \"{}\"", escaped_message);
 
-    println!("\n{}", "Git command:".green());
+    println!("{}", "✅Generated commit message:".green());
     println!("{}", commit_command);
 
     if execute {
