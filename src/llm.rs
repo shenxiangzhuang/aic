@@ -44,7 +44,7 @@ pub async fn generate_commit_message(
             },
             Message {
                 role: "user".to_string(),
-                content: format!("Here is the git diff of the staged changes. Please generate a commit message based on these changes:\n\n```diff\n{}\n```", diff),
+                content: format!("Here is the git diff of the staged changes. Please generate a commit message(start with feat, fix, and so on, no bullshit!) based on these changes:\n\n```diff\n{}\n```", diff),
             },
         ],
     };
