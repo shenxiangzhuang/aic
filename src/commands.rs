@@ -158,8 +158,25 @@ fn edit_commit_message(commit_message: &str) -> Result<String> {
     fs::write(&temp_file_path, commit_message)
         .context("Failed to create temporary file for editing")?;
 
-    // Open the editor for modification
-    let editor = env::var("EDITOR").unwrap_or_else(|_| "nano".to_string());
+    // Get the editor command - prioritize environment variable, then check for vim/vi
+    let editor = if let Ok(editor) = env::var("EDITOR") {
+        // Use user's preferred editor from environment variable
+        editor
+    } else {
+        // Try to find vim or vi, fall back to nano
+        if Command::new("vim").arg("--version").status().is_ok() {
+            "vim".to_string()
+        } else if Command::new("vi").arg("--version").status().is_ok() {
+            "vi".to_string()
+        } else {
+            "nano".to_string()
+        }
+    };
+
+    println!(
+        "✏️  Opening {} to edit commit message...",
+        editor.bright_blue()
+    );
 
     let edit_status = Command::new(&editor)
         .arg(&temp_file_path)
