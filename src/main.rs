@@ -50,10 +50,6 @@ async fn generate_commit(
         llm::generate_commit_message(&diff, &system_prompt, api_token, &api_base_url, &model_name)
             .await?;
 
-    // Print the result
-    println!("\n{}", "Generated commit message:".green());
-    println!("{}", commit_message);
-
     // Format git commit command for display
     let escaped_message = commit_message.replace("\"", "\\\"");
     let commit_command = format!("git commit -m \"{}\"", escaped_message);
