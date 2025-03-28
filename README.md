@@ -1,122 +1,143 @@
-# AI Commit Message Generator
+# AI Commit Message Generator (aic)
 
-A CLI tool that uses AI to generate meaningful commit messages based on your staged Git changes.
+A CLI tool that uses AI to generate meaningful commit messages by analyzing your staged Git changes.
 
 ## Features
 
-- **AI-Powered:** Automatically generates detailed and context-aware commit messages by analyzing your staged git diffs.
-- **Customizable:** Configure system prompts, API base URLs, and models to tailor the commit message style to your project's needs.
-- **Interactive Execution:** Review, modify, and execute generated commit commands with ease.
-- **Configuration Management:** Easily set, update, or list configuration options such as API tokens and default prompts.
+- **AI-Powered:** Automatically generates detailed and context-aware commit messages
+- **Interactive Mode:** Review and edit generated messages before committing
+- **Multiple AI Providers:** Works with OpenAI and compatible APIs
+- **Customizable:** Configure prompts, models, and API endpoints
 
-## Installation
+## Quick Start
 
-To build and install the tool, ensure you have [Rust](https://www.rust-lang.org/tools/install) installed, then follow these steps:
+1. Install the tool:
 
 ```bash
-git clone https://github.com/yourusername/aic.git
-cd aic
-cargo build --release
+cargo install --git https://github.com/yourusername/aic.git
 ```
 
-For global installation (optional):
+2. Configure your API token:
 
 ```bash
-cargo install --path .
+aic config set api_token your_openai_token
 ```
 
-## Usage
-
-### Basic Usage
-
-Generate a commit message using the current staged changes:
+3. Stage your changes and generate a commit:
 
 ```bash
+git add .
 aic
 ```
 
-If no subcommand is provided, the CLI defaults to generating a commit message.
+## Common Use Cases
 
-### Command Options
-
-#### Generate Command
-
-Generate a commit message based on your staged changes. Customize the prompt, API base, and model if desired:
+### Basic Commit Generation
 
 ```bash
-aic generate --prompt "Write commit messages in conventional commit format" --api-base "https://api.openai.com" --model "gpt-4-turbo"
+# Stage changes and generate commit
+git add .
+aic
+
+# Generate and automatically execute commit
+aic -e
 ```
 
-#### Configuration Commands
+### Customizing Generation
 
-Manage configuration settings for your project.
+```bash
+# Use a custom prompt
+aic --prompt "Write commits in conventional commit format"
 
-- **Get a configuration value:**
+# Use a specific model
+aic --model gpt-4-turbo
 
-  ```bash
-  aic config get <key>
-  ```
+# Use a different API provider
+aic --api-base "https://api.deepseek.com"
+```
 
-  Example:
+### Configuration Management
 
-  ```bash
-  aic config get api_token
-  ```
+```bash
+# Quick setup
+aic config setup --api-token <TOKEN> --model gpt-4-turbo
 
-- **Set a configuration value:**
+# View current settings
+aic config list
 
-  ```bash
-  aic config set <key> <value>
-  ```
+# Update individual settings
+aic config set model gpt-4-turbo
+aic config set default_prompt "Write detailed commit messages"
+```
 
-  Example:
+## Command Reference
 
-  ```bash
-  aic config set model gpt-4-turbo
-  ```
+### Main Commands
 
-- **Setup multiple configurations at once:**
+- `aic`: Generate commit message (default)
+- `aic generate`: Same as above, with more options
+- `aic config`: Manage configuration
 
-  ```bash
-  aic config setup --api-token <TOKEN> --api-base-url <URL> --model <MODEL> --default-prompt "Your default prompt"
-  ```
+### Common Options
 
-- **List all configuration values:**
+- `-e, --execute`: Execute commit automatically
+- `-p, --prompt`: Custom system prompt
+- `--model`: Specify AI model
+- `--api-base`: Custom API endpoint
 
-  ```bash
-  aic config list
-  ```
+### Configuration Keys
 
-## Workflow
+- `api_token`: Your API authentication token
+- `api_base_url`: API endpoint (default: OpenAI)
+- `model`: AI model to use (default: gpt-3.5-turbo)
+- `default_prompt`: Default system prompt
 
-1. **Stage Your Changes:**
-   Use `git add` to stage changes in your repository.
+## Environment Variables
 
-2. **Generate a Commit Message:**
-   Run `aic` (or `aic generate`) to have the tool analyze your staged changes and produce a commit message using AI.
+- `EDITOR`: Preferred editor for modifying commit messages
+  - Falls back to: vim → vi → nano
 
-3. **Review Command:**
-   The generated commit command is displayed. You can modify the commit message using the provided editor (configured via the `EDITOR` environment variable).
+## Tips & Tricks
 
-## Editing Commit Message
+1. **Quick Commits**: Use `aic -e` to skip the confirmation prompt
 
-If you choose to modify the generated commit message, the tool opens your preferred text editor (or falls back to `vim`, `vi`, or `nano`) to let you make changes before committing.
+2. **Custom Prompts**: Set project-specific prompts:
+   ```bash
+   aic config set default_prompt "Write commits focusing on security implications"
+   ```
 
-## Configuration File
+3. **Alternative Providers**: Use with other OpenAI-compatible APIs:
+   ```bash
+   aic config set api_base_url "https://your-api-endpoint"
+   ```
 
-The tool stores its configuration in a file that includes settings such as:
+## Troubleshooting
 
-- **api_token:** API token for authentication with your AI provider.
-- **api_base_url:** Custom base URL for the OpenAI-compatible API.
-- **model:** The model to generate commit messages.
-- **default_prompt:** A default prompt guiding the style of generated commit messages.
+### Common Issues
 
-The configuration file location is displayed when running `aic config list`.
+1. **No Changes Detected**
+   - Ensure changes are staged with `git add`
+   - Check if you're in a git repository
+
+2. **API Errors**
+   - Verify your API token is set correctly
+   - Check API endpoint accessibility
+   - Confirm you have sufficient API credits
+
+3. **Editor Issues**
+   - Set your preferred editor: `export EDITOR=code`
+   - Ensure the editor is installed and accessible
 
 ## Contributing
 
-Contributions are greatly appreciated! If you have ideas for improvements or bug fixes, please fork the repository and create a pull request with your changes.
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
