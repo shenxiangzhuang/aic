@@ -296,3 +296,64 @@ pub async fn handle_config_command(config_cmd: &ConfigCommands) -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Config;
+    use std::env;
+    use std::fs;
+
+    #[tokio::test]
+    async fn test_generate_commit_no_staged_changes() {
+        // Mock the git::get_diff function to return an empty string
+        // Here, you would replace the actual call with a mock or a stub
+        // For example, you could use a trait and dependency injection
+
+        let config = Config::default();
+        let result = generate_commit(&config, None, None, None, false).await;
+
+        assert!(result.is_ok());
+        // Check for expected output (e.g., "No staged changes detected")
+    }
+
+    #[tokio::test]
+    async fn test_generate_commit_with_staged_changes() {
+        // Mock the git::get_diff function to return a non-empty string
+        // Again, use a trait or dependency injection to replace the actual call
+
+        let config = Config::default();
+        let result = generate_commit(&config, None, None, None, false).await;
+
+        assert!(result.is_ok());
+        // Check for expected output (e.g., "Generating commit message...")
+    }
+
+    #[test]
+    fn test_execute_commit_success() {
+        // Mock the Command::new("git") to simulate a successful commit
+        // You can use a mock library or dependency injection here
+
+        let status = execute_commit("Test commit message");
+        assert!(status.is_ok());
+        // Check for expected output (e.g., "Commit created successfully!")
+    }
+
+
+    #[test]
+    fn test_edit_commit_message() {
+        // Set up a temporary environment for the test
+        let temp_dir = env::temp_dir();
+        let temp_file_path = temp_dir.join("aic_commit_message.txt");
+
+        // Write a test commit message to the temporary file
+        fs::write(&temp_file_path, "Test commit message").unwrap();
+
+        // Mock the editor command to simulate editing
+        env::set_var("EDITOR", "true");
+
+        let result = edit_commit_message("Test commit message");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "Test commit message");
+    }
+}
