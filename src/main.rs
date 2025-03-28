@@ -4,7 +4,7 @@ mod git;
 mod llm;
 
 use anyhow::{Context, Result};
-use cli::{Cli, Commands, ConfigCommands};
+use cli::{Commands, ConfigCommands};
 use colored::Colorize;
 use config::Config;
 
@@ -50,6 +50,11 @@ async fn generate_commit(
     // Print the result
     println!("\n{}", "Generated commit message:".green());
     println!("{}", commit_message);
+
+    // Format and print a ready-to-use git commit command
+    let escaped_message = commit_message.replace("\"", "\\\"");
+    println!("\n{}", "Ready-to-use command:".green());
+    println!("git commit -m \"{}\"", escaped_message);
 
     Ok(())
 }
