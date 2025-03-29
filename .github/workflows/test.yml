@@ -1,0 +1,48 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rust: stable
+          - os: windows-latest
+            rust: stable
+          - os: macos-latest
+            rust: stable
+          - os: ubuntu-latest
+            rust: nightly
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@${{ matrix.rust }}
+      with:
+        components: rustfmt, clippy
+    
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2
+    
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+    
+    - name: Clippy
+      run: cargo clippy -- -D warnings
+    
+    - name: Run tests
+      run: cargo test --verbose
+    
+    - name: Build
+      run: cargo build --verbose 

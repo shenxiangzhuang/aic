@@ -2,5 +2,24 @@
 name = "aic"
 version = "0.1.0"
 edition = "2021"
+description = "AI-powered commit message generation CLI tool"
+authors = ["Mathew Shen <datahonor@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/mathewshen/aic"
 
 [dependencies]
+clap = { version = "4.4", features = ["derive"] }
+reqwest = { version = "0.11", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.35", features = ["full"] }
+anyhow = "1.0"
+dirs = "5.0"
+toml = "0.8"
+chrono = "0.4.40"
+tempfile = "3.19.1"
+colored = "3.0.0"
+uuid = { version = "1.7", features = ["v4"] }
+
+[dev-dependencies]
+wiremock = "0.6.3"
