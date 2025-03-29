@@ -3,76 +3,18 @@ name: Release
 on:
   push:
     tags:
-    - v[0-9]+.[0-9]+.[0-9]+*
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to test (e.g., v0.1.0 or v0.1.0-rc1)'
-        required: true
-        type: string
-        default: 'v0.1.0'
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   release:
-    name: Release - ${{ matrix.platform.os-name }}
-    strategy:
-      matrix:
-        platform:
-          - os-name: FreeBSD-x86_64
-            runs-on: ubuntu-24.04
-            target: x86_64-unknown-freebsd
-
-          - os-name: Linux-x86_64
-            runs-on: ubuntu-24.04
-            target: x86_64-unknown-linux-musl
-
-          - os-name: Linux-aarch64
-            runs-on: ubuntu-24.04
-            target: aarch64-unknown-linux-musl
-
-          - os-name: Linux-riscv64
-            runs-on: ubuntu-24.04
-            target: riscv64gc-unknown-linux-gnu
-
-          - os-name: Windows-x86_64
-            runs-on: windows-latest
-            target: x86_64-pc-windows-msvc
-
-          - os-name: macOS-x86_64
-            runs-on: macOS-latest
-            target: x86_64-apple-darwin
-
-          # more targets here ...
-
-    runs-on: ${{ matrix.platform.runs-on }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build binary
-        uses: houseabsolute/actions-rust-cross@v1
-        with:
-          command: build
-          target: ${{ matrix.platform.target }}
-          args: "--locked --release"
-          strip: true
-      - name: Publish artifacts and release
-        uses: houseabsolute/actions-rust-release@v0
-        with:
-          executable-name: ubi
-          target: ${{ matrix.platform.target }}
-
-
-  publish-crate:
-    name: Publish to crates.io
-    needs: release
-    if: github.event_name == 'push'
+    name: Release
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-
+    
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@stable
       with:
@@ -90,7 +32,10 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
     
+    - name: Build
+      run: cargo build --locked --release --verbose
+    
     - name: Publish to crates.io
-      run: cargo publish --token ${CRATES_IO_TOKEN}
+      run: cargo publish
       env:
-        CRATES_IO_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }} 
+        CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }} 
