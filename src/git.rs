@@ -9,7 +9,7 @@ pub fn get_diff() -> Result<String> {
     // Create a unique temporary file with UUID
     let temp_dir = env::temp_dir();
     let temp_file_path = temp_dir.join(format!("aic_git_diff_{}.txt", Uuid::new_v4()));
-    
+
     // Ensure the file is removed even if the function panics
     struct TempFileGuard(std::path::PathBuf);
     impl Drop for TempFileGuard {

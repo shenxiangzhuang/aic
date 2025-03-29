@@ -12,11 +12,7 @@ use std::process::Command;
 use uuid::Uuid;
 
 /// Generate a commit message using AI and optionally execute it
-pub async fn generate_commit(
-    config: &Config,
-    auto_add: bool,
-    auto_commit: bool,
-) -> Result<()> {
+pub async fn generate_commit(config: &Config, auto_add: bool, auto_commit: bool) -> Result<()> {
     // Print header
     ui::print_header();
 
@@ -167,7 +163,7 @@ fn edit_commit_message(commit_message: &str) -> Result<String> {
     // Create a unique temporary file with UUID
     let temp_dir = env::temp_dir();
     let temp_file_path = temp_dir.join(format!("aic_commit_message_{}.txt", Uuid::new_v4()));
-    
+
     // Ensure the file is removed even if the function panics
     struct TempFileGuard(std::path::PathBuf);
     impl Drop for TempFileGuard {
@@ -325,7 +321,11 @@ async fn ping_api(config: &Config) -> Result<()> {
     let api_base_url = config.get_api_base_url();
     let model = config.get_model();
 
-    println!("{} {}", "🌐 API Base URL:".blue(), api_base_url.bright_blue());
+    println!(
+        "{} {}",
+        "🌐 API Base URL:".blue(),
+        api_base_url.bright_blue()
+    );
     println!("{} {}", "🤖 Model:".blue(), model.bright_blue());
 
     // Create a simple test request
