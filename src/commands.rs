@@ -9,6 +9,7 @@ use std::env;
 use std::fs;
 use std::io::{self, Write};
 use std::process::Command;
+use uuid::Uuid;
 
 /// Generate a commit message using AI and optionally execute it
 pub async fn generate_commit(
@@ -163,9 +164,19 @@ fn handle_commit_options(commit_message: &str) -> Result<()> {
 
 /// Open an editor to modify the commit message
 fn edit_commit_message(commit_message: &str) -> Result<String> {
-    // Create a temporary file with the commit message
+    // Create a unique temporary file with UUID
     let temp_dir = env::temp_dir();
-    let temp_file_path = temp_dir.join("aic_commit_message.txt");
+    let temp_file_path = temp_dir.join(format!("aic_commit_message_{}.txt", Uuid::new_v4()));
+    
+    // Ensure the file is removed even if the function panics
+    struct TempFileGuard(std::path::PathBuf);
+    impl Drop for TempFileGuard {
+        fn drop(&mut self) {
+            let _ = fs::remove_file(&self.0);
+        }
+    }
+    let _guard = TempFileGuard(temp_file_path.clone());
+
     fs::write(&temp_file_path, commit_message)
         .context("Failed to create temporary file for editing")?;
 
@@ -201,9 +212,6 @@ fn edit_commit_message(commit_message: &str) -> Result<String> {
     // Read the modified message
     let modified_message =
         fs::read_to_string(&temp_file_path).context("Failed to read modified commit message")?;
-
-    // Clean up the temporary file
-    let _ = fs::remove_file(&temp_file_path);
 
     Ok(modified_message)
 }
