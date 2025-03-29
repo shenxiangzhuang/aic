@@ -17,7 +17,7 @@ cargo install --git https://github.com/shenxiangzhuang/aic.git
 
 ## Quick Start
 
-1. Configure your API settings (choose one):
+1.Configure your API settings (choose one):
 
 ```bash
 # For OpenAI
@@ -36,7 +36,7 @@ Output:
 🎉 Configuration updated successfully!
 ```
 
-2. Verify your configuration:
+2.Verify your configuration:
 ```bash
 aic config list
 ```
@@ -55,7 +55,7 @@ Output:
    /home/user/.config/aic/config.toml
 ```
 
-3. Test your API connection:
+3.Test your API connection:
 ```bash
 aic ping
 ```
