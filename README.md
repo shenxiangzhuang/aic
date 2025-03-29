@@ -201,3 +201,8 @@ aic config set default_prompt "Write commits in conventional commit format"
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## References
+
+- [The Lost Art of Commit Messages](https://www.seyhan.me/blog/post/lost-art-of-commit-messages)
+- [Conventional Commits 1.0.0](https://www.conventionalcommits.org/)
