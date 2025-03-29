@@ -1,9 +1,25 @@
 use anyhow::{Context, Result};
+use std::env;
+use std::fs;
 use std::process::Command;
+use uuid::Uuid;
 
 /// Get the diff for staged changes in the git repository
 pub fn get_diff() -> Result<String> {
-    // Run git diff --staged command
+    // Create a unique temporary file with UUID
+    let temp_dir = env::temp_dir();
+    let temp_file_path = temp_dir.join(format!("aic_git_diff_{}.txt", Uuid::new_v4()));
+    
+    // Ensure the file is removed even if the function panics
+    struct TempFileGuard(std::path::PathBuf);
+    impl Drop for TempFileGuard {
+        fn drop(&mut self) {
+            let _ = fs::remove_file(&self.0);
+        }
+    }
+    let _guard = TempFileGuard(temp_file_path.clone());
+
+    // Get the diff of staged changes
     let output = Command::new("git")
         .args(["diff", "--staged"])
         .output()
@@ -14,8 +30,13 @@ pub fn get_diff() -> Result<String> {
         return Err(anyhow::anyhow!("Git diff command failed: {}", error));
     }
 
-    let diff =
-        String::from_utf8(output.stdout).context("Failed to parse git diff output as UTF-8")?;
+    // Write the diff to a temporary file
+    fs::write(&temp_file_path, &output.stdout)
+        .context("Failed to write git diff to temporary file")?;
+
+    // Read the file content
+    let diff = fs::read_to_string(&temp_file_path)
+        .context("Failed to read git diff from temporary file")?;
 
     Ok(diff)
 }
