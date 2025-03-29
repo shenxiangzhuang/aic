@@ -108,15 +108,6 @@ aic -c
 
 # Stage all changes and commit automatically
 aic -ac
-
-# Use custom prompt
-aic --prompt "Write commits in conventional commit format"
-
-# Use specific model
-aic --model gpt-4-turbo
-
-# Use different API provider
-aic --api-base "https://api.deepseek.com"
 ```
 
 ### Configuration

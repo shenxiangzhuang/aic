@@ -26,9 +26,6 @@ async fn main() -> Result<()> {
             // No subcommand provided, default to generate behavior using cli directly
             commands::generate_commit(
                 &config,
-                cli.prompt.clone(),
-                cli.api_base.clone(),
-                cli.model.clone(),
                 cli.auto_add,
                 cli.auto_commit,
             )

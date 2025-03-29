@@ -13,9 +13,6 @@ use std::process::Command;
 /// Generate a commit message using AI and optionally execute it
 pub async fn generate_commit(
     config: &Config,
-    prompt: Option<String>,
-    api_base: Option<String>,
-    model: Option<String>,
     auto_add: bool,
     auto_commit: bool,
 ) -> Result<()> {
@@ -55,10 +52,10 @@ pub async fn generate_commit(
     // Get API token
     let api_token = config.get_api_token()?;
 
-    // Use custom configurations or defaults
-    let system_prompt = prompt.unwrap_or_else(|| config.get_default_prompt().to_string());
-    let api_base_url = api_base.unwrap_or_else(|| config.get_api_base_url().to_string());
-    let model_name = model.unwrap_or_else(|| config.get_model().to_string());
+    // Use configuration values
+    let system_prompt = config.get_default_prompt().to_string();
+    let api_base_url = config.get_api_base_url().to_string();
+    let model_name = config.get_model().to_string();
 
     // Print configuration information
     println!("{} {}", "🤖 Using model:".blue(), model_name.bright_blue());
@@ -366,17 +363,11 @@ async fn ping_api(config: &Config) -> Result<()> {
 pub async fn handle_commands(cli: &Commands, config: &Config) -> Result<()> {
     match cli {
         Commands::Generate {
-            prompt,
-            api_base,
-            model,
             auto_add,
             auto_commit,
         } => {
             generate_commit(
                 config,
-                prompt.clone(),
-                api_base.clone(),
-                model.clone(),
                 *auto_add,
                 *auto_commit,
             )
@@ -407,7 +398,7 @@ mod tests {
         // For example, you could use a trait and dependency injection
 
         let config = Config::default();
-        let result = generate_commit(&config, None, None, None, false, false).await;
+        let result = generate_commit(&config, false, false).await;
 
         assert!(result.is_ok());
         // Check for expected output (e.g., "No staged changes detected")
@@ -419,7 +410,7 @@ mod tests {
         // Again, use a trait or dependency injection to replace the actual call
 
         let config = Config::default();
-        let result = generate_commit(&config, None, None, None, false, false).await;
+        let result = generate_commit(&config, false, false).await;
 
         assert!(result.is_ok());
         // Check for expected output (e.g., "Generating commit message...")
