@@ -125,7 +125,7 @@ jobs:
           executable=$executable.exe
         fi
 
-        mkdir $dist_dir
+        mkdir -p $dist_dir
         cp $executable $dist_dir
         cd $dist_dir
 
