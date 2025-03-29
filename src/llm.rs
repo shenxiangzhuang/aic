@@ -40,11 +40,32 @@ pub async fn generate_commit_message(
         messages: vec![
             Message {
                 role: "system".to_string(),
-                content: format!("{} Generate a concise and informative commit message for the following changes.", system_prompt),
+                content: format!(
+                    "{}\n\nYou are an expert at writing clear and concise commit messages. \
+                    Follow these rules strictly:\n\n\
+                    1. Start with a type: feat, fix, docs, style, refactor, perf, test, build, ci, chore, or revert\n\
+                    2. Optionally add a scope in parentheses after the type\n\
+                    3. Write a brief description in imperative mood (e.g., 'add' not 'added')\n\
+                    4. Keep the first line under 72 characters\n\
+                    5. Use the body to explain what and why, not how\n\
+                    6. Reference issues and pull requests liberally\n\
+                    7. Consider starting the body with 'This commit' to make it clear what the commit does\n\n\
+                    Example format:\n\
+                    type(scope): subject\n\n\
+                    body\n\n\
+                    footer",
+                    system_prompt
+                ),
             },
             Message {
                 role: "user".to_string(),
-                content: format!("Here is the git diff of the staged changes. Please generate a commit message(start with feat, fix, and so on, no bullshit!) based on these changes:\n\n```diff\n{}\n```", diff),
+                content: format!(
+                    "Here is the git diff of the staged changes. Generate a commit message that \
+                    follows the conventional commit format and best practices. Focus on what changed \
+                    and why, not how it changed:\n\n\
+                    ```diff\n{}\n```",
+                    diff
+                ),
             },
         ],
     };
