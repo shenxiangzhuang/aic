@@ -116,6 +116,8 @@ aic -ac
 aic ping
 ```
 
+> **Note**: The `-a` flag will stage ALL changes in your working directory with `git add .`. The `-c` flag will commit directly without confirmation. Use these flags with caution, especially in repositories with multiple changes.
+
 ### Configuration Management
 
 ```bash
