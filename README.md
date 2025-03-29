@@ -183,7 +183,7 @@ aic config set default_prompt "Write commits in conventional commit format"
    - Confirm you have sufficient API credits
 
 3. **Editor Issues**
-   - Set your preferred editor: `export EDITOR=code`
+   - Set your preferred editor: `export EDITOR=vim`
    - Ensure the editor is installed and accessible
 
 ## Contributing
