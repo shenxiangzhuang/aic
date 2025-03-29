@@ -2,53 +2,51 @@ use crate::config::Config;
 use colored::Colorize;
 
 /// Print the application header
-pub fn print_header() {
-    println!(
-        "{}",
-        "╭─────────────────────────────────────╮".bright_blue()
-    );
-    println!(
-        "{}",
-        "│     AI Commit Message Generator     │".bright_blue()
-    );
-    println!(
-        "{}",
+pub fn print_header() -> String {
+    let header = format!(
+        "{}\n{}\n{}",
+        "╭─────────────────────────────────────╮".bright_blue(),
+        "│     AI Commit Message Generator     │".bright_blue(),
         "╰─────────────────────────────────────╯".bright_blue()
     );
+    println!("{}", header);
+    header
 }
 
 /// Print configuration in a formatted table
-pub fn print_config_table(config: &Config) {
-    println!(
-        "{}",
+pub fn print_config_table(config: &Config) -> String {
+    let mut output = String::new();
+
+    output.push_str(&format!(
+        "{}\n",
         "┌───────────────┬──────────────────────────────────────┐".dimmed()
-    );
+    ));
 
     // API Token (with masking for security)
-    print!("│ {:<13} │ ", "api_token".bright_blue());
+    output.push_str(&format!("│ {:<13} │ ", "api_token".bright_blue()));
     if let Some(token) = &config.api_token {
         if token.len() > 8 {
-            println!("{:<36} │", format!("{}•••••", &token[0..4]));
+            output.push_str(&format!("{:<36} │\n", format!("{}•••••", &token[0..4])));
         } else {
-            println!("{:<36} │", "•••••••");
+            output.push_str(&format!("{:<36} │\n", "•••••••"));
         }
     } else {
-        println!("{:<36} │", "<not set>".dimmed());
+        output.push_str(&format!("{:<36} │\n", "<not set>".dimmed()));
     }
 
     // Base URL
-    println!(
-        "│ {:<13} │ {:<36} │",
+    output.push_str(&format!(
+        "│ {:<13} │ {:<36} │\n",
         "api_base_url".bright_blue(),
         config.get_api_base_url()
-    );
+    ));
 
     // Model
-    println!(
-        "│ {:<13} │ {:<36} │",
+    output.push_str(&format!(
+        "│ {:<13} │ {:<36} │\n",
         "model".bright_blue(),
         config.get_model()
-    );
+    ));
 
     // Default prompt (truncated if too long)
     let prompt = config.get_default_prompt();
@@ -57,14 +55,47 @@ pub fn print_config_table(config: &Config) {
     } else {
         prompt.to_string()
     };
-    println!(
-        "│ {:<13} │ {:<36} │",
+    output.push_str(&format!(
+        "│ {:<13} │ {:<36} │\n",
         "default_prompt".bright_blue(),
         display_prompt
-    );
+    ));
 
-    println!(
+    output.push_str(&format!(
         "{}",
         "└───────────────┴──────────────────────────────────────┘".dimmed()
-    );
+    ));
+
+    println!("{}", output);
+    output
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_print_header() {
+        let output = print_header();
+        assert!(output.contains("AI Commit Message Generator"));
+    }
+
+    #[test]
+    fn test_print_config_table() {
+        let config = Config {
+            api_token: Some("test_token123".to_string()),
+            api_base_url: None,
+            model: None,
+            default_prompt: Some("Write a commit message".to_string()),
+        };
+
+        let output = print_config_table(&config);
+
+        // Test that output contains key elements
+        assert!(output.contains("api_token"));
+        assert!(output.contains("test•••••"));
+        assert!(output.contains("api_base_url"));
+        assert!(output.contains("model"));
+        assert!(output.contains("Write a commit message"));
+    }
 }
