@@ -144,9 +144,15 @@ mod tests {
         let model = "gpt-3.5-turbo";
 
         // Use the mock server URL instead of the real OpenAI API
-        let commit_message =
-            generate_commit_message(diff, system_prompt, user_prompt, "test_token", &mock_server.uri(), model)
-                .await?;
+        let commit_message = generate_commit_message(
+            diff,
+            system_prompt,
+            user_prompt,
+            "test_token",
+            &mock_server.uri(),
+            model,
+        )
+        .await?;
 
         // Verify the response
         assert_eq!(

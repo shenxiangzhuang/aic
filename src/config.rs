@@ -18,7 +18,8 @@ const DEFAULT_SYSTEM_PROMPT: &str = "You are an expert at writing clear and conc
     body\n\n\
     footer";
 
-const DEFAULT_USER_PROMPT: &str = "Here is the git diff of the staged changes. Generate a commit message that \
+const DEFAULT_USER_PROMPT: &str =
+    "Here is the git diff of the staged changes. Generate a commit message that \
     follows the conventional commit format and best practices. Focus on what changed \
     and why, not how it changed:\n\n\
     ```diff\n{}\n```";
@@ -150,7 +151,9 @@ impl Config {
     }
 
     pub fn get_system_prompt(&self) -> &str {
-        self.system_prompt.as_deref().unwrap_or(DEFAULT_SYSTEM_PROMPT)
+        self.system_prompt
+            .as_deref()
+            .unwrap_or(DEFAULT_SYSTEM_PROMPT)
     }
 
     pub fn get_user_prompt(&self) -> &str {
@@ -274,10 +277,10 @@ mod tests {
         assert!(config
             .get_system_prompt()
             .contains("You are an expert at writing clear and concise commit messages."));
-        assert!(config
-            .get_user_prompt()
-            .contains("Here is the git diff of the staged changes. Generate a commit message that \
+        assert!(config.get_user_prompt().contains(
+            "Here is the git diff of the staged changes. Generate a commit message that \
     follows the conventional commit format and best practices. Focus on what changed \
-    and why, not how it changed:"));
+    and why, not how it changed:"
+        ));
     }
 }

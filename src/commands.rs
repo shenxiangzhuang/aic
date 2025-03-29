@@ -60,9 +60,15 @@ pub async fn generate_commit(config: &Config, auto_add: bool, auto_commit: bool)
     println!("{}", "✨ Generating commit message...".blue());
 
     // Generate commit message
-    let commit_message =
-        llm::generate_commit_message(&diff, &system_prompt, &user_prompt, api_token, &api_base_url, &model_name)
-            .await?;
+    let commit_message = llm::generate_commit_message(
+        &diff,
+        &system_prompt,
+        &user_prompt,
+        api_token,
+        &api_base_url,
+        &model_name,
+    )
+    .await?;
 
     // Format git commit command for display
     let escaped_message = commit_message.replace("\"", "\\\"");
