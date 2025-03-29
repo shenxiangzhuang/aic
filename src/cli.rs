@@ -144,3 +144,96 @@ pub enum ConfigCommands {
 pub fn parse_args() -> Cli {
     Cli::parse()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_basic_command() {
+        let args = Cli::parse_from(["program"]);
+        assert!(args.command.is_none());
+        assert!(!args.execute);
+        assert!(args.prompt.is_none());
+        assert!(args.api_base.is_none());
+        assert!(args.model.is_none());
+    }
+
+    #[test]
+    fn test_generate_command() {
+        let args = Cli::parse_from([
+            "program", 
+            "generate", 
+            "--prompt", "Write conventional commits",
+            "--execute"
+        ]);
+        
+        match args.command {
+            Some(Commands::Generate { prompt, execute, api_base, model }) => {
+                assert_eq!(prompt, Some("Write conventional commits".to_string()));
+                assert!(execute);
+                assert!(api_base.is_none());
+                assert!(model.is_none());
+            }
+            _ => panic!("Expected Generate command"),
+        }
+    }
+
+    #[test]
+    fn test_config_get() {
+        let args = Cli::parse_from(["program", "config", "get", "api_token"]);
+        
+        match args.command {
+            Some(Commands::Config(ConfigCommands::Get { key })) => {
+                assert_eq!(key, "api_token");
+            }
+            _ => panic!("Expected Config Get command"),
+        }
+    }
+
+    #[test]
+    fn test_config_set() {
+        let args = Cli::parse_from([
+            "program", 
+            "config", 
+            "set", 
+            "api_token", 
+            "test-token"
+        ]);
+        
+        match args.command {
+            Some(Commands::Config(ConfigCommands::Set { key, value })) => {
+                assert_eq!(key, "api_token");
+                assert_eq!(value, Some("test-token".to_string()));
+            }
+            _ => panic!("Expected Config Set command"),
+        }
+    }
+
+    #[test]
+    fn test_config_setup() {
+        let args = Cli::parse_from([
+            "program",
+            "config",
+            "setup",
+            "--api-token", "test-token",
+            "--model", "gpt-4",
+            "--api-base-url", "https://api.example.com",
+        ]);
+        
+        match args.command {
+            Some(Commands::Config(ConfigCommands::Setup { 
+                api_token, 
+                model, 
+                api_base_url,
+                default_prompt 
+            })) => {
+                assert_eq!(api_token, Some("test-token".to_string()));
+                assert_eq!(model, Some("gpt-4".to_string()));
+                assert_eq!(api_base_url, Some("https://api.example.com".to_string()));
+                assert!(default_prompt.is_none());
+            }
+            _ => panic!("Expected Config Setup command"),
+        }
+    }
+}
