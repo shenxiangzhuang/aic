@@ -4,6 +4,13 @@ on:
   push:
     tags:
     - v[0-9]+.[0-9]+.[0-9]+*
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to test (e.g., v0.1.0)'
+        required: true
+        type: string
+        default: 'v0.1.0'
         
 env:
   CARGO_TERM_COLOR: always
@@ -104,6 +111,13 @@ jobs:
         rustup default
         cargo -V
         rustc -V
+      
+    - name: Install OpenSSL dependencies
+      if: matrix.use-cross
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libssl-dev pkg-config
       
     - name: Build
       shell: bash
