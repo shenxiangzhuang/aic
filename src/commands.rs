@@ -50,7 +50,8 @@ pub async fn generate_commit(config: &Config, auto_add: bool, auto_commit: bool)
     let api_token = config.get_api_token()?;
 
     // Use configuration values
-    let system_prompt = config.get_default_prompt().to_string();
+    let system_prompt = config.get_system_prompt().to_string();
+    let user_prompt = config.get_user_prompt().to_string();
     let api_base_url = config.get_api_base_url().to_string();
     let model_name = config.get_model().to_string();
 
@@ -59,9 +60,15 @@ pub async fn generate_commit(config: &Config, auto_add: bool, auto_commit: bool)
     println!("{}", "✨ Generating commit message...".blue());
 
     // Generate commit message
-    let commit_message =
-        llm::generate_commit_message(&diff, &system_prompt, api_token, &api_base_url, &model_name)
-            .await?;
+    let commit_message = llm::generate_commit_message(
+        &diff,
+        &system_prompt,
+        &user_prompt,
+        api_token,
+        &api_base_url,
+        &model_name,
+    )
+    .await?;
 
     // Format git commit command for display
     let escaped_message = commit_message.replace("\"", "\\\"");

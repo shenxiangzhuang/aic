@@ -28,6 +28,7 @@ struct OpenAIResponse {
 pub async fn generate_commit_message(
     diff: &str,
     system_prompt: &str,
+    user_prompt: &str,
     api_token: &str,
     api_base_url: &str,
     model: &str,
@@ -40,32 +41,11 @@ pub async fn generate_commit_message(
         messages: vec![
             Message {
                 role: "system".to_string(),
-                content: format!(
-                    "{}\n\nYou are an expert at writing clear and concise commit messages. \
-                    Follow these rules strictly:\n\n\
-                    1. Start with a type: feat, fix, docs, style, refactor, perf, test, build, ci, chore, or revert\n\
-                    2. Optionally add a scope in parentheses after the type\n\
-                    3. Write a brief description in imperative mood (e.g., 'add' not 'added')\n\
-                    4. Keep the first line under 72 characters\n\
-                    5. Use the body to explain what and why, not how\n\
-                    6. Reference issues and pull requests liberally\n\
-                    7. Consider starting the body with 'This commit' to make it clear what the commit does\n\n\
-                    Example format:\n\
-                    type(scope): subject\n\n\
-                    body\n\n\
-                    footer",
-                    system_prompt
-                ),
+                content: system_prompt.to_string(),
             },
             Message {
                 role: "user".to_string(),
-                content: format!(
-                    "Here is the git diff of the staged changes. Generate a commit message that \
-                    follows the conventional commit format and best practices. Focus on what changed \
-                    and why, not how it changed:\n\n\
-                    ```diff\n{}\n```",
-                    diff
-                ),
+                content: user_prompt.replace("{}", diff),
             },
         ],
     };
@@ -157,12 +137,23 @@ mod tests {
             "#;
 
         let system_prompt = "You are a helpful assistant.";
+        let user_prompt =
+            "Here is the git diff of the staged changes. Generate a commit message that \
+            follows the conventional commit format and best practices. Focus on what changed \
+            and why, not how it changed:\n\n\
+            ```diff\n{}\n```";
         let model = "gpt-3.5-turbo";
 
         // Use the mock server URL instead of the real OpenAI API
-        let commit_message =
-            generate_commit_message(diff, system_prompt, "test_token", &mock_server.uri(), model)
-                .await?;
+        let commit_message = generate_commit_message(
+            diff,
+            system_prompt,
+            user_prompt,
+            "test_token",
+            &mock_server.uri(),
+            model,
+        )
+        .await?;
 
         // Verify the response
         assert_eq!(
@@ -189,6 +180,7 @@ mod tests {
         let result = generate_commit_message(
             "some diff",
             "system prompt",
+            "user prompt",
             "invalid_token",
             &mock_server.uri(),
             "gpt-3.5-turbo",
