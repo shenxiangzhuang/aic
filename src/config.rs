@@ -4,6 +4,20 @@ use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::PathBuf;
 
+const DEFAULT_PROMPT: &str = "You are an expert at writing clear and concise commit messages. \
+    Follow these rules strictly:\n\n\
+    1. Start with a type: feat, fix, docs, style, refactor, perf, test, build, ci, chore, or revert\n\
+    2. Optionally add a scope in parentheses after the type\n\
+    3. Write a brief description in imperative mood (e.g., 'add' not 'added')\n\
+    4. Keep the first line under 72 characters\n\
+    5. Use the body to explain what and why, not how\n\
+    6. Reference issues and pull requests liberally\n\
+    7. Consider starting the body with 'This commit' to make it clear what the commit does\n\n\
+    Example format:\n\
+    type(scope): subject\n\n\
+    body\n\n\
+    footer";
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     // Skip serializing None values to keep the config file clean
@@ -26,16 +40,7 @@ impl Default for Config {
             api_token: None,
             api_base_url: Some("https://api.openai.com".to_string()),
             model: Some("gpt-3.5-turbo".to_string()),
-            default_prompt: Some(
-                "You are a helpful assistant specialized in writing git commit messages. \
-                Follow these guidelines: \
-                1. Use the imperative mood (e.g., 'Add' not 'Added'). \
-                2. Keep it concise but descriptive. \
-                3. Include the scope of the change when relevant. \
-                4. Explain WHY the change was made, not just WHAT was changed. \
-                5. Use conventional commit format when appropriate."
-                    .to_string(),
-            ),
+            default_prompt: Some(DEFAULT_PROMPT.to_string()),
         }
     }
 }
@@ -134,15 +139,7 @@ impl Config {
     }
 
     pub fn get_default_prompt(&self) -> &str {
-        self.default_prompt.as_deref().unwrap_or(
-            "You are a helpful assistant specialized in writing git commit messages. \
-            Follow these guidelines: \
-            1. Use the imperative mood (e.g., 'Add' not 'Added'). \
-            2. Keep it concise but descriptive. \
-            3. Include the scope of the change when relevant. \
-            4. Explain WHY the change was made, not just WHAT was changed. \
-            5. Use conventional commit format when appropriate.",
-        )
+        self.default_prompt.as_deref().unwrap_or(DEFAULT_PROMPT)
     }
 }
 
@@ -259,6 +256,6 @@ mod tests {
         assert_eq!(config.get_model(), "gpt-3.5-turbo");
         assert!(config
             .get_default_prompt()
-            .contains("You are a helpful assistant"));
+            .contains("You are an expert at writing clear and concise commit messages."));
     }
 }
