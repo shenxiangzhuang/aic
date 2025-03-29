@@ -88,3 +88,99 @@ pub async fn generate_commit_message(
 
     Ok(commit_message)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use wiremock::{
+        matchers::{header, method, path},
+        Mock, MockServer, ResponseTemplate,
+    };
+
+    #[tokio::test]
+    async fn test_generate_commit_message() -> Result<()> {
+        // Start a mock server
+        let mock_server = MockServer::start().await;
+
+        // Create a mock response
+        let mock_response = serde_json::json!({
+            "choices": [{
+                "message": {
+                    "role": "assistant",
+                    "content": "feat: improve greeting message with username support"
+                }
+            }]
+        });
+
+        // Set up the mock expectation
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .and(header("Authorization", "Bearer test_token"))
+            .and(header("Content-Type", "application/json"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(mock_response))
+            .mount(&mock_server)
+            .await;
+
+        // Sample git diff
+        let diff = r#"
+            diff --git a/src/main.rs b/src/main.rs
+            index 1234567..89abcdef 100644
+            --- a/src/main.rs
+            +++ b/src/main.rs
+            @@ -1,3 +1,4 @@
+            +use std::env;
+            fn main() {
+            -    println!("Hello, world!");
+            +    println!("Hello, {}!", env::var("USER").unwrap_or("world".to_string()));
+            }
+            "#;
+
+        let system_prompt = "You are a helpful assistant.";
+        let model = "gpt-3.5-turbo";
+
+        // Use the mock server URL instead of the real OpenAI API
+        let commit_message =
+            generate_commit_message(diff, system_prompt, "test_token", &mock_server.uri(), model)
+                .await?;
+
+        // Verify the response
+        assert_eq!(
+            commit_message,
+            "feat: improve greeting message with username support"
+        );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_generate_commit_message_api_error() -> Result<()> {
+        // Start a mock server
+        let mock_server = MockServer::start().await;
+
+        // Set up the mock to return an error
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .respond_with(ResponseTemplate::new(401).set_body_string("Unauthorized"))
+            .mount(&mock_server)
+            .await;
+
+        // Attempt to generate a commit message
+        let result = generate_commit_message(
+            "some diff",
+            "system prompt",
+            "invalid_token",
+            &mock_server.uri(),
+            "gpt-3.5-turbo",
+        )
+        .await;
+
+        // Verify that we get an error
+        assert!(result.is_err());
+        let err = result.unwrap_err().to_string();
+        assert!(err.contains("API request failed"));
+        assert!(err.contains("401"));
+        assert!(err.contains("Unauthorized"));
+
+        Ok(())
+    }
+}
