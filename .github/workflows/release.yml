@@ -7,11 +7,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to test (e.g., v0.1.0)'
+        description: 'Version to test (e.g., v0.1.0 or v0.1.0-rc1)'
         required: true
         type: string
         default: 'v0.1.0'
-        
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -23,6 +23,7 @@ jobs:
       contents: write
     outputs:
       rc: ${{ steps.check-tag.outputs.rc }}
+      version: ${{ steps.check-tag.outputs.version }}
 
     strategy:
       matrix:
@@ -73,16 +74,25 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Check Tag
+    - name: Determine Version and RC status
       id: check-tag
       shell: bash
       run: |
-        ver=${GITHUB_REF##*/}
-        echo "version=$ver" >> $GITHUB_OUTPUT
-        if [[ "$ver" =~ [0-9]+.[0-9]+.[0-9]+$ ]]; then
-          echo "rc=false" >> $GITHUB_OUTPUT
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          ver="${{ github.event.inputs.version }}"
         else
+          ver="${GITHUB_REF##*/}"
+        fi
+
+        echo "Determined version: $ver"
+        echo "version=$ver" >> $GITHUB_OUTPUT
+
+        if [[ "$ver" =~ - ]]; then
           echo "rc=true" >> $GITHUB_OUTPUT
+          echo "Detected pre-release: $ver"
+        else
+          echo "rc=false" >> $GITHUB_OUTPUT
+          echo "Detected final release: $ver"
         fi
 
 
@@ -112,8 +122,8 @@ jobs:
         cargo -V
         rustc -V
       
-    - name: Install OpenSSL dependencies
-      if: matrix.use-cross
+    - name: Install OpenSSL dependencies (Linux)
+      if: runner.os == 'Linux' && matrix.use-cross
       shell: bash
       run: |
         sudo apt-get update
@@ -128,7 +138,7 @@ jobs:
       id: package
       env:
         target: ${{ matrix.target }}
-        version:  ${{ steps.check-tag.outputs.version }}
+        version: ${{ steps.check-tag.outputs.version }}
       run: |
         set -euxo pipefail
 
@@ -141,35 +151,43 @@ jobs:
           executable=$executable.exe
         fi
 
-        mkdir $dist_dir
-        cp $executable $dist_dir
+        mkdir -p $dist_dir
+        cp $executable $dist_dir/
         cd $dist_dir
 
         if [[ "$RUNNER_OS" == "Windows" ]]; then
-            archive=$dist_dir/$name.zip
+            archive=$name.zip
             7z a $archive *
-            echo "archive=dist/$name.zip" >> $GITHUB_OUTPUT
+            echo "archive=$archive" >> $GITHUB_OUTPUT
         else
-            archive=$dist_dir/$name.tar.gz
+            archive=$name.tar.gz
             tar -czf $archive *
-            echo "archive=dist/$name.tar.gz" >> $GITHUB_OUTPUT
+            echo "archive=$archive" >> $GITHUB_OUTPUT
         fi
+        echo "Created archive: $archive in $(pwd)"
+        cd ..
+        echo "archive_path=dist/$archive" >> $GITHUB_OUTPUT
 
     - name: Publish Archive
       uses: softprops/action-gh-release@v2
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
       with:
-        draft: false
-        files: ${{ steps.package.outputs.archive }}
+        tag_name: ${{ steps.check-tag.outputs.version }}
+        draft: ${{ github.event_name == 'workflow_dispatch' }}
+        files: ${{ steps.package.outputs.archive_path }}
         prerelease: ${{ steps.check-tag.outputs.rc == 'true' }}
 
 
   publish-crate:
     name: Publish to crates.io
+    needs: release
+    if: github.event_name == 'push' && needs.release.outputs.rc == 'false'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
+      with:
+        ref: ${{ needs.release.outputs.version }}
+
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@stable
       with:
@@ -187,10 +205,7 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
     
-    - name: Build
-      run: cargo build --locked --release --verbose
-    
     - name: Publish to crates.io
-      run: cargo publish
+      run: cargo publish --token ${CRATES_IO_TOKEN}
       env:
-        CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }} 
+        CRATES_IO_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }} 
