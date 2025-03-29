@@ -15,178 +15,63 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
-
 jobs:
   release:
-    name: Publish to GitHub Release
-    permissions:
-      contents: write
-    outputs:
-      rc: ${{ steps.check-tag.outputs.rc }}
-      version: ${{ steps.check-tag.outputs.version }}
-
+    name: Release - ${{ matrix.platform.os-name }}
     strategy:
       matrix:
-        include:
-        - target: aarch64-unknown-linux-musl
-          os: ubuntu-latest
-          use-cross: true
-          cargo-flags: ""
-        - target: aarch64-apple-darwin
-          os: macos-latest
-          use-cross: true
-          cargo-flags: ""
-        - target: aarch64-pc-windows-msvc
-          os: windows-latest
-          use-cross: true
-          cargo-flags: ""
-        - target: x86_64-apple-darwin
-          os: macos-latest
-          cargo-flags: ""
-        - target: x86_64-pc-windows-msvc
-          os: windows-latest
-          cargo-flags: ""
-        - target: x86_64-unknown-linux-musl
-          os: ubuntu-latest
-          use-cross: true
-          cargo-flags: ""
-        - target: i686-unknown-linux-musl
-          os: ubuntu-latest
-          use-cross: true
-          cargo-flags: ""
-        - target: i686-pc-windows-msvc
-          os: windows-latest
-          use-cross: true
-          cargo-flags: ""
-        - target: armv7-unknown-linux-musleabihf
-          os: ubuntu-latest
-          use-cross: true
-          cargo-flags: ""
-        - target: arm-unknown-linux-musleabihf
-          os: ubuntu-latest
-          use-cross: true
-          cargo-flags: ""
+        platform:
+          - os-name: FreeBSD-x86_64
+            runs-on: ubuntu-24.04
+            target: x86_64-unknown-freebsd
 
-    runs-on: ${{matrix.os}}
-    env:
-      BUILD_CMD: cargo
+          - os-name: Linux-x86_64
+            runs-on: ubuntu-24.04
+            target: x86_64-unknown-linux-musl
 
+          - os-name: Linux-aarch64
+            runs-on: ubuntu-24.04
+            target: aarch64-unknown-linux-musl
+
+          - os-name: Linux-riscv64
+            runs-on: ubuntu-24.04
+            target: riscv64gc-unknown-linux-gnu
+
+          - os-name: Windows-x86_64
+            runs-on: windows-latest
+            target: x86_64-pc-windows-msvc
+
+          - os-name: macOS-x86_64
+            runs-on: macOS-latest
+            target: x86_64-apple-darwin
+
+          # more targets here ...
+
+    runs-on: ${{ matrix.platform.runs-on }}
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Determine Version and RC status
-      id: check-tag
-      shell: bash
-      run: |
-        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          ver="${{ github.event.inputs.version }}"
-        else
-          ver="${GITHUB_REF##*/}"
-        fi
-
-        echo "Determined version: $ver"
-        echo "version=$ver" >> $GITHUB_OUTPUT
-
-        if [[ "$ver" =~ - ]]; then
-          echo "rc=true" >> $GITHUB_OUTPUT
-          echo "Detected pre-release: $ver"
-        else
-          echo "rc=false" >> $GITHUB_OUTPUT
-          echo "Detected final release: $ver"
-        fi
-
-
-    - name: Install Rust Toolchain Components
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        targets: ${{ matrix.target }}
-
-    - name: Install cross
-      if: matrix.use-cross
-      uses: taiki-e/install-action@v2
-      with:
-        tool: cross
-
-    - name: Overwrite build command env variable
-      if: matrix.use-cross
-      shell: bash
-      run: echo "BUILD_CMD=cross" >> $GITHUB_ENV
-  
-    - name: Show Version Information (Rust, cargo, GCC)
-      shell: bash
-      run: |
-        gcc --version || true
-        rustup -V
-        rustup toolchain list
-        rustup default
-        cargo -V
-        rustc -V
-      
-    - name: Install OpenSSL dependencies (Linux)
-      if: runner.os == 'Linux' && matrix.use-cross
-      shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libssl-dev pkg-config
-      
-    - name: Build
-      shell: bash
-      run: $BUILD_CMD build --locked --release --target=${{ matrix.target }} ${{ matrix.cargo-flags }}
-
-    - name: Build Archive
-      shell: bash
-      id: package
-      env:
-        target: ${{ matrix.target }}
-        version: ${{ steps.check-tag.outputs.version }}
-      run: |
-        set -euxo pipefail
-
-        bin=${GITHUB_REPOSITORY##*/}
-        dist_dir=`pwd`/dist
-        name=$bin-$version-$target
-        executable=target/$target/release/$bin
-
-        if [[ "$RUNNER_OS" == "Windows" ]]; then
-          executable=$executable.exe
-        fi
-
-        mkdir -p $dist_dir
-        cp $executable $dist_dir/
-        cd $dist_dir
-
-        if [[ "$RUNNER_OS" == "Windows" ]]; then
-            archive=$name.zip
-            7z a $archive *
-            echo "archive=$archive" >> $GITHUB_OUTPUT
-        else
-            archive=$name.tar.gz
-            tar -czf $archive *
-            echo "archive=$archive" >> $GITHUB_OUTPUT
-        fi
-        echo "Created archive: $archive in $(pwd)"
-        cd ..
-        echo "archive_path=dist/$archive" >> $GITHUB_OUTPUT
-
-    - name: Publish Archive
-      uses: softprops/action-gh-release@v2
-      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-      with:
-        tag_name: ${{ steps.check-tag.outputs.version }}
-        draft: ${{ github.event_name == 'workflow_dispatch' }}
-        files: ${{ steps.package.outputs.archive_path }}
-        prerelease: ${{ steps.check-tag.outputs.rc == 'true' }}
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build binary
+        uses: houseabsolute/actions-rust-cross@v1
+        with:
+          command: ${{ matrix.platform.command }}
+          target: ${{ matrix.platform.target }}
+          args: "--locked --release"
+          strip: true
+      - name: Publish artifacts and release
+        uses: houseabsolute/actions-rust-release@v0
+        with:
+          executable-name: ubi
+          target: ${{ matrix.platform.target }}
 
 
   publish-crate:
     name: Publish to crates.io
     needs: release
-    if: github.event_name == 'push' && needs.release.outputs.rc == 'false'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-      with:
-        ref: ${{ needs.release.outputs.version }}
 
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@stable
