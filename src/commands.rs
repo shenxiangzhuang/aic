@@ -362,17 +362,6 @@ async fn ping_api(config: &Config) -> Result<()> {
 /// Process commands or default behavior
 pub async fn handle_commands(cli: &Commands, config: &Config) -> Result<()> {
     match cli {
-        Commands::Generate {
-            auto_add,
-            auto_commit,
-        } => {
-            generate_commit(
-                config,
-                *auto_add,
-                *auto_commit,
-            )
-            .await?;
-        }
         Commands::Ping => {
             ping_api(config).await?;
         }

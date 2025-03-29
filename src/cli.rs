@@ -32,31 +32,6 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Generate a commit message based on git diff
-    #[command(
-        long_about = "Analyzes your staged git changes and generates a meaningful commit message using AI.\n\
-        Make sure to stage your changes with 'git add' before running this command."
-    )]
-    Generate {
-        /// Automatically stage all changes before generating commit message
-        #[arg(
-            short = 'a',
-            long = "add",
-            help = "Automatically stage all changes before generating commit message",
-            long_help = "When provided, automatically stage all changes with 'git add .' before generating the commit message."
-        )]
-        auto_add: bool,
-
-        /// Execute the git commit command automatically without confirmation
-        #[arg(
-            short = 'c',
-            long = "commit",
-            help = "Execute the git commit command automatically without confirmation",
-            long_help = "When provided, automatically execute the git commit command without asking for confirmation."
-        )]
-        auto_commit: bool,
-    },
-
     /// Test API connection and configuration
     #[command(
         long_about = "Test the API connection and configuration settings.\n\
@@ -123,27 +98,6 @@ mod tests {
         assert!(args.command.is_none());
         assert!(!args.auto_commit);
         assert!(!args.auto_add);
-    }
-
-    #[test]
-    fn test_generate_command() {
-        let args = Cli::parse_from([
-            "program",
-            "generate",
-            "--commit",
-            "--add",
-        ]);
-
-        match args.command {
-            Some(Commands::Generate {
-                auto_commit,
-                auto_add,
-            }) => {
-                assert!(auto_commit);
-                assert!(auto_add);
-            }
-            _ => panic!("Expected Generate command"),
-        }
     }
 
     #[test]
