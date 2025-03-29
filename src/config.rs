@@ -4,7 +4,7 @@ use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::PathBuf;
 
-const DEFAULT_PROMPT: &str = "You are an expert at writing clear and concise commit messages. \
+const DEFAULT_SYSTEM_PROMPT: &str = "You are an expert at writing clear and concise commit messages. \
     Follow these rules strictly:\n\n\
     1. Start with a type: feat, fix, docs, style, refactor, perf, test, build, ci, chore, or revert\n\
     2. Optionally add a scope in parentheses after the type\n\
@@ -17,6 +17,11 @@ const DEFAULT_PROMPT: &str = "You are an expert at writing clear and concise com
     type(scope): subject\n\n\
     body\n\n\
     footer";
+
+const DEFAULT_USER_PROMPT: &str = "Here is the git diff of the staged changes. Generate a commit message that \
+    follows the conventional commit format and best practices. Focus on what changed \
+    and why, not how it changed:\n\n\
+    ```diff\n{}\n```";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -31,7 +36,10 @@ pub struct Config {
     pub model: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub default_prompt: Option<String>,
+    pub system_prompt: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user_prompt: Option<String>,
 }
 
 impl Default for Config {
@@ -40,7 +48,8 @@ impl Default for Config {
             api_token: None,
             api_base_url: Some("https://api.openai.com".to_string()),
             model: Some("gpt-3.5-turbo".to_string()),
-            default_prompt: Some(DEFAULT_PROMPT.to_string()),
+            system_prompt: Some(DEFAULT_SYSTEM_PROMPT.to_string()),
+            user_prompt: Some(DEFAULT_USER_PROMPT.to_string()),
         }
     }
 }
@@ -102,7 +111,8 @@ impl Config {
             "api_token" => self.api_token = value,
             "api_base_url" => self.api_base_url = value,
             "model" => self.model = value,
-            "default_prompt" => self.default_prompt = value,
+            "system_prompt" => self.system_prompt = value,
+            "user_prompt" => self.user_prompt = value,
             _ => return Err(anyhow::anyhow!("Unknown configuration key: {}", key)),
         }
 
@@ -117,7 +127,8 @@ impl Config {
             "api_token" => self.api_token.as_ref(),
             "api_base_url" => self.api_base_url.as_ref(),
             "model" => self.model.as_ref(),
-            "default_prompt" => self.default_prompt.as_ref(),
+            "system_prompt" => self.system_prompt.as_ref(),
+            "user_prompt" => self.user_prompt.as_ref(),
             _ => None,
         }
     }
@@ -138,8 +149,12 @@ impl Config {
         self.model.as_deref().unwrap_or("gpt-3.5-turbo")
     }
 
-    pub fn get_default_prompt(&self) -> &str {
-        self.default_prompt.as_deref().unwrap_or(DEFAULT_PROMPT)
+    pub fn get_system_prompt(&self) -> &str {
+        self.system_prompt.as_deref().unwrap_or(DEFAULT_SYSTEM_PROMPT)
+    }
+
+    pub fn get_user_prompt(&self) -> &str {
+        self.user_prompt.as_deref().unwrap_or(DEFAULT_USER_PROMPT)
     }
 }
 
@@ -158,7 +173,8 @@ mod tests {
             Some("https://api.openai.com")
         );
         assert_eq!(config.model.as_deref(), Some("gpt-3.5-turbo"));
-        assert!(config.default_prompt.is_some());
+        assert!(config.system_prompt.is_some());
+        assert!(config.user_prompt.is_some());
     }
 
     #[test]
@@ -243,7 +259,8 @@ mod tests {
         assert_eq!(loaded_config.api_token, Some("test_token".to_string()));
         assert_eq!(loaded_config.api_base_url, config.api_base_url);
         assert_eq!(loaded_config.model, config.model);
-        assert_eq!(loaded_config.default_prompt, config.default_prompt);
+        assert_eq!(loaded_config.system_prompt, config.system_prompt);
+        assert_eq!(loaded_config.user_prompt, config.user_prompt);
     }
 
     #[test]
@@ -255,7 +272,12 @@ mod tests {
         assert_eq!(config.get_api_base_url(), "https://api.openai.com");
         assert_eq!(config.get_model(), "gpt-3.5-turbo");
         assert!(config
-            .get_default_prompt()
+            .get_system_prompt()
             .contains("You are an expert at writing clear and concise commit messages."));
+        assert!(config
+            .get_user_prompt()
+            .contains("Here is the git diff of the staged changes. Generate a commit message that \
+    follows the conventional commit format and best practices. Focus on what changed \
+    and why, not how it changed:"));
     }
 }

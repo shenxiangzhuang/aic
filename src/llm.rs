@@ -28,6 +28,7 @@ struct OpenAIResponse {
 pub async fn generate_commit_message(
     diff: &str,
     system_prompt: &str,
+    user_prompt: &str,
     api_token: &str,
     api_base_url: &str,
     model: &str,
@@ -44,13 +45,7 @@ pub async fn generate_commit_message(
             },
             Message {
                 role: "user".to_string(),
-                content: format!(
-                    "Here is the git diff of the staged changes. Generate a commit message that \
-                    follows the conventional commit format and best practices. Focus on what changed \
-                    and why, not how it changed:\n\n\
-                    ```diff\n{}\n```",
-                    diff
-                ),
+                content: user_prompt.replace("{}", diff),
             },
         ],
     };
@@ -142,11 +137,15 @@ mod tests {
             "#;
 
         let system_prompt = "You are a helpful assistant.";
+        let user_prompt = "Here is the git diff of the staged changes. Generate a commit message that \
+                    follows the conventional commit format and best practices. Focus on what changed \
+                    and why, not how it changed:\n\n\
+                    ```diff\n{}\n```";
         let model = "gpt-3.5-turbo";
 
         // Use the mock server URL instead of the real OpenAI API
         let commit_message =
-            generate_commit_message(diff, system_prompt, "test_token", &mock_server.uri(), model)
+            generate_commit_message(diff, system_prompt, user_prompt, "test_token", &mock_server.uri(), model)
                 .await?;
 
         // Verify the response
@@ -174,6 +173,7 @@ mod tests {
         let result = generate_commit_message(
             "some diff",
             "system prompt",
+            "user prompt",
             "invalid_token",
             &mock_server.uri(),
             "gpt-3.5-turbo",
