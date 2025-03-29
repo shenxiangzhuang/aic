@@ -1,4 +1,4 @@
-use crate::cli::ConfigCommands;
+use crate::cli::{Commands, ConfigCommands};
 use crate::config::Config;
 use crate::git;
 use crate::llm;
@@ -291,6 +291,86 @@ pub async fn handle_config_command(config_cmd: &ConfigCommands) -> Result<()> {
             } else {
                 println!("   <unknown>");
             }
+        }
+    }
+
+    Ok(())
+}
+
+/// Test API connection and configuration
+async fn ping_api(config: &Config) -> Result<()> {
+    println!("{}", "🔍 Testing API connection...".blue());
+
+    // Get API token and base URL
+    let api_token = config.get_api_token()?;
+    let api_base_url = config.get_api_base_url();
+    let model = config.get_model();
+
+    println!("{} {}", "🌐 API Base URL:".blue(), api_base_url.bright_blue());
+    println!("{} {}", "🤖 Model:".blue(), model.bright_blue());
+
+    // Create a simple test request
+    let client = reqwest::Client::new();
+    let endpoint = format!("{}/v1/chat/completions", api_base_url.trim_end_matches('/'));
+
+    let request = serde_json::json!({
+        "model": model,
+        "messages": [
+            {
+                "role": "user",
+                "content": "Hello"
+            }
+        ]
+    });
+
+    // Send the request
+    let response = client
+        .post(&endpoint)
+        .header("Authorization", format!("Bearer {}", api_token))
+        .header("Content-Type", "application/json")
+        .json(&request)
+        .send()
+        .await
+        .context("Failed to send request to API")?;
+
+    let status = response.status();
+    let response_text = response.text().await?;
+
+    if status.is_success() {
+        println!("{}", "✅ API connection successful!".green().bold());
+        println!("{}", "✨ Configuration is working correctly.".green());
+    } else {
+        println!("{}", "❌ API connection failed:".red().bold());
+        println!("Status: {}", status);
+        println!("Error: {}", response_text);
+    }
+
+    Ok(())
+}
+
+/// Process commands or default behavior
+pub async fn handle_commands(cli: &Commands, config: &Config) -> Result<()> {
+    match cli {
+        Commands::Generate {
+            prompt,
+            api_base,
+            model,
+            execute,
+        } => {
+            generate_commit(
+                config,
+                prompt.clone(),
+                api_base.clone(),
+                model.clone(),
+                *execute,
+            )
+            .await?;
+        }
+        Commands::Ping => {
+            ping_api(config).await?;
+        }
+        Commands::Config(config_cmd) => {
+            handle_config_command(config_cmd).await?;
         }
     }
 

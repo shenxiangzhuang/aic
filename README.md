@@ -27,10 +27,66 @@ aic config setup --api-token your_openai_token --api-base-url https://api.openai
 aic config setup --api-token your_deepseek_token --api-base-url https://api.deepseek.com --model deepseek-chat
 ```
 
-2. Stage your changes and generate a commit:
+Output:
+```
+⚙️  Updating configuration...
+✓ Set api_token to: your•••••
+✓ Set api_base_url to: https://api.openai.com
+✓ Set model to: gpt-3.5-turbo
+🎉 Configuration updated successfully!
+```
+
+2. Verify your configuration:
+```bash
+aic config list
+```
+
+Output:
+```
+⚙️  Current Configuration:
+┌───────────────┬──────────────────────────────────────┐
+│ api_token     │ your•••••                            │
+│ api_base_url  │ https://api.openai.com               │
+│ model         │ gpt-3.5-turbo                        │
+│ default_prompt│ Write detailed commit messages...     │
+└───────────────┴──────────────────────────────────────┘
+
+📁 Configuration file location:
+   /home/user/.config/aic/config.toml
+```
+
+3. Test your API connection:
+```bash
+aic ping
+```
+
+Output:
+```
+🔍 Testing API connection...
+🌐 API Base URL: https://api.openai.com
+🤖 Model: gpt-3.5-turbo
+✅ API connection successful!
+✨ Configuration is working correctly.
+```
+
+4. Stage your changes and generate a commit:
 ```bash
 git add .
 aic
+```
+
+Output:
+```
+╭─────────────────────────────────────╮
+│     AI Commit Message Generator     │
+╰─────────────────────────────────────╯
+🔍 Analyzing staged changes...
+🤖 Using model: gpt-3.5-turbo
+✨ Generating commit message...
+📋 Commit command:
+git commit -m "feat: add new feature X"
+
+Execute this commit? [Y/m/n]:
 ```
 
 ## Usage
@@ -38,6 +94,9 @@ aic
 ### Basic Commands
 
 ```bash
+# Test API connection and configuration
+aic ping
+
 # Generate commit message
 aic
 

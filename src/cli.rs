@@ -96,6 +96,13 @@ pub enum Commands {
         execute: bool,
     },
 
+    /// Test API connection and configuration
+    #[command(
+        long_about = "Test the API connection and configuration settings.\n\
+        This command will attempt to connect to the configured API endpoint and verify the token."
+    )]
+    Ping,
+
     /// Manage configuration settings
     #[command(subcommand)]
     Config(ConfigCommands),
