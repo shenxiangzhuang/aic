@@ -162,14 +162,20 @@ mod tests {
     #[test]
     fn test_generate_command() {
         let args = Cli::parse_from([
-            "program", 
-            "generate", 
-            "--prompt", "Write conventional commits",
-            "--execute"
+            "program",
+            "generate",
+            "--prompt",
+            "Write conventional commits",
+            "--execute",
         ]);
-        
+
         match args.command {
-            Some(Commands::Generate { prompt, execute, api_base, model }) => {
+            Some(Commands::Generate {
+                prompt,
+                execute,
+                api_base,
+                model,
+            }) => {
                 assert_eq!(prompt, Some("Write conventional commits".to_string()));
                 assert!(execute);
                 assert!(api_base.is_none());
@@ -182,7 +188,7 @@ mod tests {
     #[test]
     fn test_config_get() {
         let args = Cli::parse_from(["program", "config", "get", "api_token"]);
-        
+
         match args.command {
             Some(Commands::Config(ConfigCommands::Get { key })) => {
                 assert_eq!(key, "api_token");
@@ -193,14 +199,8 @@ mod tests {
 
     #[test]
     fn test_config_set() {
-        let args = Cli::parse_from([
-            "program", 
-            "config", 
-            "set", 
-            "api_token", 
-            "test-token"
-        ]);
-        
+        let args = Cli::parse_from(["program", "config", "set", "api_token", "test-token"]);
+
         match args.command {
             Some(Commands::Config(ConfigCommands::Set { key, value })) => {
                 assert_eq!(key, "api_token");
@@ -216,17 +216,20 @@ mod tests {
             "program",
             "config",
             "setup",
-            "--api-token", "test-token",
-            "--model", "gpt-4",
-            "--api-base-url", "https://api.example.com",
+            "--api-token",
+            "test-token",
+            "--model",
+            "gpt-4",
+            "--api-base-url",
+            "https://api.example.com",
         ]);
-        
+
         match args.command {
-            Some(Commands::Config(ConfigCommands::Setup { 
-                api_token, 
-                model, 
+            Some(Commands::Config(ConfigCommands::Setup {
+                api_token,
+                model,
                 api_base_url,
-                default_prompt 
+                default_prompt,
             })) => {
                 assert_eq!(api_token, Some("test-token".to_string()));
                 assert_eq!(model, Some("gpt-4".to_string()));
