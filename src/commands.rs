@@ -16,7 +16,7 @@ pub async fn generate_commit(
     prompt: Option<String>,
     api_base: Option<String>,
     model: Option<String>,
-    execute: bool,
+    auto_commit: bool,
 ) -> Result<()> {
     // Print header
     ui::print_header();
@@ -63,7 +63,7 @@ pub async fn generate_commit(
     println!("{}", "📋 Commit command:".green().bold());
     println!("{}", commit_command.bright_white());
 
-    if execute {
+    if auto_commit {
         execute_commit(&commit_message)?;
     } else {
         handle_commit_options(&commit_message)?;
@@ -355,14 +355,14 @@ pub async fn handle_commands(cli: &Commands, config: &Config) -> Result<()> {
             prompt,
             api_base,
             model,
-            execute,
+            auto_commit,
         } => {
             generate_commit(
                 config,
                 prompt.clone(),
                 api_base.clone(),
                 model.clone(),
-                *execute,
+                *auto_commit,
             )
             .await?;
         }

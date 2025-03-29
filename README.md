@@ -100,8 +100,8 @@ aic ping
 # Generate commit message
 aic
 
-# Generate and execute commit automatically
-aic -e
+# Generate and commit automatically without confirmation
+aic -c
 
 # Use custom prompt
 aic --prompt "Write commits in conventional commit format"

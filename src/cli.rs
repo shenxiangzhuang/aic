@@ -36,14 +36,14 @@ pub struct Cli {
     )]
     pub model: Option<String>,
 
-    /// Execute the git commit command automatically
+    /// Execute the git commit command automatically without confirmation
     #[arg(
-        short,
-        long,
-        help = "Execute the git commit command automatically",
+        short = 'c',
+        long = "commit",
+        help = "Execute the git commit command automatically without confirmation",
         long_help = "When provided, automatically execute the git commit command without asking for confirmation."
     )]
-    pub execute: bool,
+    pub auto_commit: bool,
 
     #[command(subcommand)]
     pub command: Option<Commands>,
@@ -86,14 +86,14 @@ pub enum Commands {
         )]
         model: Option<String>,
 
-        /// Execute the git commit command automatically
+        /// Execute the git commit command automatically without confirmation
         #[arg(
-            short,
-            long,
-            help = "Execute the git commit command automatically",
+            short = 'c',
+            long = "commit",
+            help = "Execute the git commit command automatically without confirmation",
             long_help = "When provided, automatically execute the git commit command without asking for confirmation."
         )]
-        execute: bool,
+        auto_commit: bool,
     },
 
     /// Test API connection and configuration
@@ -160,7 +160,7 @@ mod tests {
     fn test_basic_command() {
         let args = Cli::parse_from(["program"]);
         assert!(args.command.is_none());
-        assert!(!args.execute);
+        assert!(!args.auto_commit);
         assert!(args.prompt.is_none());
         assert!(args.api_base.is_none());
         assert!(args.model.is_none());
@@ -173,18 +173,18 @@ mod tests {
             "generate",
             "--prompt",
             "Write conventional commits",
-            "--execute",
+            "--commit",
         ]);
 
         match args.command {
             Some(Commands::Generate {
                 prompt,
-                execute,
+                auto_commit,
                 api_base,
                 model,
             }) => {
                 assert_eq!(prompt, Some("Write conventional commits".to_string()));
-                assert!(execute);
+                assert!(auto_commit);
                 assert!(api_base.is_none());
                 assert!(model.is_none());
             }
