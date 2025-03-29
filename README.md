@@ -122,7 +122,7 @@ aic ping
 
 ```bash
 # Quick setup
-aic config setup --api-token <TOKEN> --model gpt-4-turbo
+aic config setup --api-token <TOKEN> --api-base-url https://api.openai.com --model gpt-4-turbo
 
 # View current settings
 aic config list
