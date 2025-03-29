@@ -27,3 +27,9 @@ prettytable-rs = "0.10"
 
 [dev-dependencies]
 wiremock = "0.6.3"
+
+
+[profile.release]
+lto = true
+strip = true
+opt-level = "z"
