@@ -137,7 +137,8 @@ mod tests {
             "#;
 
         let system_prompt = "You are a helpful assistant.";
-        let user_prompt = "Here is the git diff of the staged changes. Generate a commit message that \
+        let user_prompt =
+            "Here is the git diff of the staged changes. Generate a commit message that \
             follows the conventional commit format and best practices. Focus on what changed \
             and why, not how it changed:\n\n\
             ```diff\n{}\n```";
