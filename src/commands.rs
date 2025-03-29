@@ -16,10 +16,24 @@ pub async fn generate_commit(
     prompt: Option<String>,
     api_base: Option<String>,
     model: Option<String>,
+    auto_add: bool,
     auto_commit: bool,
 ) -> Result<()> {
     // Print header
     ui::print_header();
+
+    // Auto-add changes if requested
+    if auto_add {
+        println!("{}", "📦 Staging all changes...".blue());
+        let status = Command::new("git")
+            .args(["add", "."])
+            .status()
+            .context("Failed to stage changes with git add")?;
+
+        if !status.success() {
+            return Err(anyhow::anyhow!("Failed to stage changes with git add"));
+        }
+    }
 
     println!("{}", "🔍 Analyzing staged changes...".blue());
 
@@ -355,6 +369,7 @@ pub async fn handle_commands(cli: &Commands, config: &Config) -> Result<()> {
             prompt,
             api_base,
             model,
+            auto_add,
             auto_commit,
         } => {
             generate_commit(
@@ -362,6 +377,7 @@ pub async fn handle_commands(cli: &Commands, config: &Config) -> Result<()> {
                 prompt.clone(),
                 api_base.clone(),
                 model.clone(),
+                *auto_add,
                 *auto_commit,
             )
             .await?;
@@ -391,7 +407,7 @@ mod tests {
         // For example, you could use a trait and dependency injection
 
         let config = Config::default();
-        let result = generate_commit(&config, None, None, None, false).await;
+        let result = generate_commit(&config, None, None, None, false, false).await;
 
         assert!(result.is_ok());
         // Check for expected output (e.g., "No staged changes detected")
@@ -403,7 +419,7 @@ mod tests {
         // Again, use a trait or dependency injection to replace the actual call
 
         let config = Config::default();
-        let result = generate_commit(&config, None, None, None, false).await;
+        let result = generate_commit(&config, None, None, None, false, false).await;
 
         assert!(result.is_ok());
         // Check for expected output (e.g., "Generating commit message...")

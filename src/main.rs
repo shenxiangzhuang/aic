@@ -29,6 +29,7 @@ async fn main() -> Result<()> {
                 cli.prompt.clone(),
                 cli.api_base.clone(),
                 cli.model.clone(),
+                cli.auto_add,
                 cli.auto_commit,
             )
             .await?;

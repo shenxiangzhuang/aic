@@ -36,6 +36,15 @@ pub struct Cli {
     )]
     pub model: Option<String>,
 
+    /// Automatically stage all changes before generating commit message
+    #[arg(
+        short = 'a',
+        long = "add",
+        help = "Automatically stage all changes before generating commit message",
+        long_help = "When provided, automatically stage all changes with 'git add .' before generating the commit message."
+    )]
+    pub auto_add: bool,
+
     /// Execute the git commit command automatically without confirmation
     #[arg(
         short = 'c',
@@ -85,6 +94,15 @@ pub enum Commands {
             long_help = "Specify the model to use for generating commit messages."
         )]
         model: Option<String>,
+
+        /// Automatically stage all changes before generating commit message
+        #[arg(
+            short = 'a',
+            long = "add",
+            help = "Automatically stage all changes before generating commit message",
+            long_help = "When provided, automatically stage all changes with 'git add .' before generating the commit message."
+        )]
+        auto_add: bool,
 
         /// Execute the git commit command automatically without confirmation
         #[arg(
@@ -161,6 +179,7 @@ mod tests {
         let args = Cli::parse_from(["program"]);
         assert!(args.command.is_none());
         assert!(!args.auto_commit);
+        assert!(!args.auto_add);
         assert!(args.prompt.is_none());
         assert!(args.api_base.is_none());
         assert!(args.model.is_none());
@@ -174,17 +193,20 @@ mod tests {
             "--prompt",
             "Write conventional commits",
             "--commit",
+            "--add",
         ]);
 
         match args.command {
             Some(Commands::Generate {
                 prompt,
                 auto_commit,
+                auto_add,
                 api_base,
                 model,
             }) => {
                 assert_eq!(prompt, Some("Write conventional commits".to_string()));
                 assert!(auto_commit);
+                assert!(auto_add);
                 assert!(api_base.is_none());
                 assert!(model.is_none());
             }
