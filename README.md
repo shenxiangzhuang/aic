@@ -2,7 +2,7 @@
 
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/aic)](https://crates.io/crates/aic)
-![docs.rs](https://img.shields.io/docsrs/aic)
+
 
 A CLI tool that uses AI to generate meaningful commit messages by analyzing your staged Git changes.
 
@@ -16,7 +16,7 @@ A CLI tool that uses AI to generate meaningful commit messages by analyzing your
 ## Installation
 
 ```bash
-cargo install --git https://github.com/shenxiangzhuang/aic.git
+cargo install aic
 ```
 
 ## Quick Start
