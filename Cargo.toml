@@ -12,18 +12,18 @@ keywords = ["AI", "LLM", "Git", "Commit"]
 
 [dependencies]
 clap = { version = "4.4", features = ["derive"] }
-reqwest = { version = "0.11", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1.35", features = ["full"] }
 anyhow = "1.0"
-dirs = "5.0"
 toml = "0.8"
 chrono = "0.4.40"
 tempfile = "3.19.1"
 colored = "3.0.0"
 uuid = { version = "1.7", features = ["v4"] }
 prettytable-rs = "0.10"
+dirs = "6.0.0"
+reqwest = { version = "0.12.15", features = ["json"] }
 
 [dev-dependencies]
 wiremock = "0.6.3"
