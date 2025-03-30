@@ -2,7 +2,7 @@
 
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/aic)](https://crates.io/crates/aic)
-
+[![codecov](https://codecov.io/gh/shenxiangzhuang/aic/graph/badge.svg?token=Ekvrf0TzJa)](https://codecov.io/gh/shenxiangzhuang/aic)
 
 A CLI tool that uses AI to generate meaningful commit messages by analyzing your staged Git changes.
 
