@@ -21,7 +21,7 @@ pub fn get_diff() -> Result<String> {
         .output()
         .context("Failed to execute git diff command.")?;
 
-    // Parse diff conttent
+    // Parse diff content
     let diff = String::from_utf8_lossy(&output.stdout).into_owned();
     Ok(diff)
 }
