@@ -3,6 +3,8 @@ use std::env;
 use std::fs;
 use std::process::Command;
 use uuid::Uuid;
+use colored::Colorize;
+
 
 /// Get the diff for staged changes in the git repository
 pub fn get_diff() -> Result<String> {
@@ -19,16 +21,24 @@ pub fn get_diff() -> Result<String> {
     }
     let _guard = TempFileGuard(temp_file_path.clone());
 
+    // Check git installation and is in a repo by `git status`
+    let git_status_output = Command::new("git")
+        .arg("status")
+        .output()?;
+
+    if !git_status_output.status.success() {
+        println!(
+            "{}",
+            "⚠️  Make sure git is installed and you're in a git repository.".yellow()
+        );
+        return Ok("".to_string());
+    }
+
     // Get the diff of staged changes
     let output = Command::new("git")
         .args(["diff", "--staged"])
         .output()
-        .context("Failed to execute git diff command. Make sure git is installed and you're in a git repository.")?;
-
-    if !output.status.success() {
-        let error = String::from_utf8_lossy(&output.stderr);
-        return Err(anyhow::anyhow!("Git diff command failed: {}", error));
-    }
+        .context("Failed to execute git diff command.")?;
 
     // Write the diff to a temporary file
     fs::write(&temp_file_path, &output.stdout)
