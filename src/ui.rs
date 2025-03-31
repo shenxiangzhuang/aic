@@ -59,14 +59,23 @@ pub fn print_config_table(config: &Config) {
 mod tests {
     use super::*;
     use crate::config::Config;
+    use std::env;
+    use tempfile::TempDir;
 
-    // Helper function for creating test config
-    fn create_test_config() -> Config {
-        let mut config = Config::default();
-        config.set("api_token", Some("test_token_123".to_string())).unwrap();
-        config.set("api_base_url", Some("https://api.example.com".to_string())).unwrap();
-        config.set("model", Some("gpt-4".to_string())).unwrap();
-        config
+    // Helper function to create a test environment
+    fn setup_test_env() -> (TempDir, Config) {
+        // Create a temporary directory
+        let temp_dir = TempDir::new()
+            .expect("Failed to create temp directory");
+        let config_dir = temp_dir.path().join(".config").join("aic");
+        std::fs::create_dir_all(&config_dir).expect("Failed to create config directory");
+
+        // Set the HOME environment variable to the temporary directory
+        env::set_var("HOME", temp_dir.path());
+
+        // Create a new config instance
+        let config = Config::default();
+        (temp_dir, config)
     }
 
     #[test]
@@ -77,7 +86,7 @@ mod tests {
 
     #[test]
     fn test_token_masking() {
-        let mut config = create_test_config();
+        let (_temp_dir, mut config) = setup_test_env();
         
         // Test long token
         config.set("api_token", Some("abcd1234567890".to_string())).unwrap();
@@ -94,7 +103,7 @@ mod tests {
 
     #[test]
     fn test_english_prompts() {
-        let mut config = create_test_config();
+        let (_temp_dir, mut config) = setup_test_env();
 
         // Test short prompt (no truncation)
         config.set("system_prompt", Some("Short msg".to_string())).unwrap();
@@ -129,7 +138,7 @@ mod tests {
 
     #[test]
     fn test_chinese_display() {
-        let mut config = create_test_config();
+        let (_temp_dir, mut config) = setup_test_env();
         
         // Test simple Chinese prompt
         config.set("system_prompt", Some("编写提交信息".to_string())).unwrap();
