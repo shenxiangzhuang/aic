@@ -1,30 +1,11 @@
 use anyhow::{Context, Result};
-use std::env;
-use std::fs;
-use std::process::Command;
-use uuid::Uuid;
 use colored::Colorize;
-
+use std::process::Command;
 
 /// Get the diff for staged changes in the git repository
 pub fn get_diff() -> Result<String> {
-    // Create a unique temporary file with UUID
-    let temp_dir = env::temp_dir();
-    let temp_file_path = temp_dir.join(format!("aic_git_diff_{}.txt", Uuid::new_v4()));
-
-    // Ensure the file is removed even if the function panics
-    struct TempFileGuard(std::path::PathBuf);
-    impl Drop for TempFileGuard {
-        fn drop(&mut self) {
-            let _ = fs::remove_file(&self.0);
-        }
-    }
-    let _guard = TempFileGuard(temp_file_path.clone());
-
     // Check git installation and is in a repo by `git status`
-    let git_status_output = Command::new("git")
-        .arg("status")
-        .output()?;
+    let git_status_output = Command::new("git").arg("status").output()?;
 
     if !git_status_output.status.success() {
         println!(
@@ -40,20 +21,15 @@ pub fn get_diff() -> Result<String> {
         .output()
         .context("Failed to execute git diff command.")?;
 
-    // Write the diff to a temporary file
-    fs::write(&temp_file_path, &output.stdout)
-        .context("Failed to write git diff to temporary file")?;
-
-    // Read the file content
-    let diff = fs::read_to_string(&temp_file_path)
-        .context("Failed to read git diff from temporary file")?;
-
+    // Parse diff conttent
+    let diff = String::from_utf8_lossy(&output.stdout).into_owned();
     Ok(diff)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::env;
     use std::fs::File;
     use std::io::Write;
     use tempfile::TempDir;
