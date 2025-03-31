@@ -36,8 +36,8 @@ pub fn print_config_table(config: &Config) {
 
     // System prompt (truncated if too long)
     let system_prompt = config.get_system_prompt();
-    let display_system_prompt = if system_prompt.len() > 36 {
-        format!("{}...", &system_prompt[0..33])
+    let display_system_prompt = if system_prompt.chars().count() > 12 {
+        format!("{}...", system_prompt.chars().take(12).collect::<String>())
     } else {
         system_prompt.to_string()
     };
@@ -45,8 +45,8 @@ pub fn print_config_table(config: &Config) {
 
     // User prompt (truncated if too long)
     let user_prompt = config.get_user_prompt();
-    let display_user_prompt = if user_prompt.len() > 36 {
-        format!("{}...", &user_prompt[0..33])
+    let display_user_prompt = if user_prompt.chars().count() > 12 {
+        format!("{}...", user_prompt.chars().take(12).collect::<String>())
     } else {
         user_prompt.to_string()
     };
