@@ -1,49 +1,35 @@
 use anyhow::{Context, Result};
-use std::env;
-use std::fs;
+use colored::Colorize;
 use std::process::Command;
-use uuid::Uuid;
 
 /// Get the diff for staged changes in the git repository
 pub fn get_diff() -> Result<String> {
-    // Create a unique temporary file with UUID
-    let temp_dir = env::temp_dir();
-    let temp_file_path = temp_dir.join(format!("aic_git_diff_{}.txt", Uuid::new_v4()));
+    // Check git installation and is in a repo by `git status`
+    let git_status_output = Command::new("git").arg("status").output()?;
 
-    // Ensure the file is removed even if the function panics
-    struct TempFileGuard(std::path::PathBuf);
-    impl Drop for TempFileGuard {
-        fn drop(&mut self) {
-            let _ = fs::remove_file(&self.0);
-        }
+    if !git_status_output.status.success() {
+        println!(
+            "{}",
+            "⚠️  Make sure git is installed and you're in a git repository.".yellow()
+        );
+        return Ok("".to_string());
     }
-    let _guard = TempFileGuard(temp_file_path.clone());
 
     // Get the diff of staged changes
     let output = Command::new("git")
         .args(["diff", "--staged"])
         .output()
-        .context("Failed to execute git diff command. Make sure git is installed and you're in a git repository.")?;
+        .context("Failed to execute git diff command.")?;
 
-    if !output.status.success() {
-        let error = String::from_utf8_lossy(&output.stderr);
-        return Err(anyhow::anyhow!("Git diff command failed: {}", error));
-    }
-
-    // Write the diff to a temporary file
-    fs::write(&temp_file_path, &output.stdout)
-        .context("Failed to write git diff to temporary file")?;
-
-    // Read the file content
-    let diff = fs::read_to_string(&temp_file_path)
-        .context("Failed to read git diff from temporary file")?;
-
+    // Parse diff content
+    let diff = String::from_utf8_lossy(&output.stdout).into_owned();
     Ok(diff)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::env;
     use std::fs::File;
     use std::io::Write;
     use tempfile::TempDir;

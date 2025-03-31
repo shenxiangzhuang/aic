@@ -32,7 +32,7 @@ pub async fn generate_commit(config: &Config, auto_add: bool, auto_commit: bool)
     println!("{}", "🔍 Analyzing staged changes...".blue());
 
     // Get git diff
-    let diff = git::get_diff().context("Failed to get git diff")?;
+    let diff: String = git::get_diff().context("Failed to get git diff")?;
 
     if diff.is_empty() {
         println!(
