@@ -65,8 +65,7 @@ mod tests {
     // Helper function to create a test environment
     fn setup_test_env() -> (TempDir, Config) {
         // Create a temporary directory
-        let temp_dir = TempDir::new()
-            .expect("Failed to create temp directory");
+        let temp_dir = TempDir::new().expect("Failed to create temp directory");
         let config_dir = temp_dir.path().join(".config").join("aic");
         std::fs::create_dir_all(&config_dir).expect("Failed to create config directory");
 
@@ -87,15 +86,17 @@ mod tests {
     #[test]
     fn test_token_masking() {
         let (_temp_dir, mut config) = setup_test_env();
-        
+
         // Test long token
-        config.set("api_token", Some("abcd1234567890".to_string())).unwrap();
+        config
+            .set("api_token", Some("abcd1234567890".to_string()))
+            .unwrap();
         print_config_table(&config);
-        
+
         // Test short token
         config.set("api_token", Some("abc".to_string())).unwrap();
         print_config_table(&config);
-        
+
         // Test no token
         config.set("api_token", None).unwrap();
         print_config_table(&config);
@@ -106,18 +107,34 @@ mod tests {
         let (_temp_dir, mut config) = setup_test_env();
 
         // Test short prompt (no truncation)
-        config.set("system_prompt", Some("Short msg".to_string())).unwrap();
-        config.set("user_prompt", Some("Brief prompt".to_string())).unwrap();
+        config
+            .set("system_prompt", Some("Short msg".to_string()))
+            .unwrap();
+        config
+            .set("user_prompt", Some("Brief prompt".to_string()))
+            .unwrap();
         print_config_table(&config);
 
         // Test exact length prompt (12 chars)
-        config.set("system_prompt", Some("Exactly12Chars".to_string())).unwrap();
+        config
+            .set("system_prompt", Some("Exactly12Chars".to_string()))
+            .unwrap();
         print_config_table(&config);
 
         // Test long prompt (with truncation)
-        config.set("system_prompt", Some("This is a very long prompt that should be truncated".to_string())).unwrap();
-        config.set("user_prompt", Some("Another long prompt that needs truncation".to_string())).unwrap();
-        
+        config
+            .set(
+                "system_prompt",
+                Some("This is a very long prompt that should be truncated".to_string()),
+            )
+            .unwrap();
+        config
+            .set(
+                "user_prompt",
+                Some("Another long prompt that needs truncation".to_string()),
+            )
+            .unwrap();
+
         let system_prompt = config.get_system_prompt();
         let display_system_prompt = if system_prompt.chars().count() > 12 {
             format!("{}...", system_prompt.chars().take(12).collect::<String>())
@@ -139,11 +156,15 @@ mod tests {
     #[test]
     fn test_chinese_display() {
         let (_temp_dir, mut config) = setup_test_env();
-        
+
         // Test simple Chinese prompt
-        config.set("system_prompt", Some("编写提交信息".to_string())).unwrap();
-        config.set("user_prompt", Some("生成提交说明".to_string())).unwrap();
-        
+        config
+            .set("system_prompt", Some("编写提交信息".to_string()))
+            .unwrap();
+        config
+            .set("user_prompt", Some("生成提交说明".to_string()))
+            .unwrap();
+
         let system_prompt = config.get_system_prompt();
         let display_system_prompt = if system_prompt.chars().count() > 12 {
             format!("{}...", system_prompt.chars().take(12).collect::<String>())
@@ -153,7 +174,7 @@ mod tests {
 
         // Verify Chinese characters are displayed correctly (no truncation needed)
         assert_eq!(display_system_prompt, "编写提交信息");
-        
+
         print_config_table(&config);
     }
 }
