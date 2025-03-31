@@ -1,13 +1,15 @@
 [package]
 name = "aic"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "AI-powered commit message generation CLI tool"
 authors = ["Mathew Shen <datahonor@gmail.com>"]
 repository = "https://github.com/shenxiangzhuang/aic"
+homepage = "https://github.com/shenxiangzhuang/aic"
 readme = "README.md"
 license = "MIT"
-keywords = ["AI", "LLM", "Git", "Commit"]
+keywords = ["ai", "llm", "git", "commit", "cli"]
+categories = ["command-line-utilities"]
 
 
 [dependencies]
