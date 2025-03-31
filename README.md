@@ -22,6 +22,7 @@ cargo install aic
 ## Quick Start
 
 1. Configure your API settings:
+
 ```bash
 # For OpenAI
 aic config setup --api-token your_openai_token --api-base-url https://api.openai.com --model gpt-3.5-turbo
@@ -31,7 +32,8 @@ aic config setup --api-token your_deepseek_token --api-base-url https://api.deep
 ```
 
 Output:
-```
+
+```bash
 ⚙️  Updating configuration...
 ✓ Set api_token to: your•••••
 ✓ Set api_base_url to: https://api.openai.com
@@ -40,18 +42,21 @@ Output:
 ```
 
 2. Verify your configuration:
+
 ```bash
 aic config list
 ```
 
 Output:
+
 ```
 ⚙️  Current Configuration:
 ┌───────────────┬──────────────────────────────────────┐
 │ api_token     │ your•••••                            │
 │ api_base_url  │ https://api.openai.com               │
 │ model         │ gpt-3.5-turbo                        │
-│ default_prompt│ Write detailed commit messages...     │
+│ system_prompt │ You are an expert at writing...      │
+│ user_prompt   │ Here is the git diff of the staged...│
 └───────────────┴──────────────────────────────────────┘
 
 📁 Configuration file location:
@@ -59,11 +64,13 @@ Output:
 ```
 
 3. Test your API connection:
+
 ```bash
 aic ping
 ```
 
 Output:
+
 ```
 🔍 Testing API connection...
 🌐 API Base URL: https://api.openai.com
@@ -73,6 +80,7 @@ Output:
 ```
 
 4. Generate commit messages:
+
 ```bash
 # Stage changes and generate commit message
 aic -a
@@ -144,7 +152,8 @@ aic config set default_prompt "Write detailed commit messages"
 - `api_token`: Your API authentication token
 - `api_base_url`: API endpoint (default: OpenAI)
 - `model`: AI model to use (default: gpt-3.5-turbo)
-- `default_prompt`: Default system prompt for commit message generation
+- `system_prompt`: System prompt that defines the AI's role and commit message format
+- `user_prompt`: User prompt that provides context about the git changes
 
 ### Environment Variables
 
@@ -154,6 +163,7 @@ aic config set default_prompt "Write detailed commit messages"
 ## Examples
 
 ### Basic Usage
+
 ```bash
 # Stage changes and generate commit message
 git add .
@@ -164,6 +174,7 @@ aic -ac
 ```
 
 ### Configuration Examples
+
 ```bash
 # Set up OpenAI
 aic config setup --api-token sk-... --model gpt-4-turbo
@@ -172,7 +183,8 @@ aic config setup --api-token sk-... --model gpt-4-turbo
 aic config setup --api-token ds-... --api-base-url https://api.deepseek.com --model deepseek-chat
 
 # Customize commit message style
-aic config set default_prompt "Write commits in conventional commit format"
+aic config set system_prompt "You are an expert at writing clear and concise commit messages..."
+aic config set user_prompt "Here is the git diff of the staged changes. Generate a commit message..."
 ```
 
 ## Troubleshooting
