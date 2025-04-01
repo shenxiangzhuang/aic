@@ -142,7 +142,7 @@ mod tests {
             "--system-prompt",
             "Test system prompt",
             "--user-prompt",
-            "Test user prompt"
+            "Test user prompt",
         ]);
 
         match args.command {
