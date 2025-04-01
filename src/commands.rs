@@ -403,10 +403,12 @@ mod tests {
     use std::fs;
     use tempfile::Builder;
 
-
     #[tokio::test]
-    async fn test_generate_commit_no_staged_changes(){
-        let tmp_dir = Builder::new().prefix("test_generate_commit_no_staged_changes").tempdir().unwrap();
+    async fn test_generate_commit_no_staged_changes() {
+        let tmp_dir = Builder::new()
+            .prefix("test_generate_commit_no_staged_changes")
+            .tempdir()
+            .unwrap();
         env::set_current_dir(&tmp_dir).unwrap();
 
         let result = generate_commit(&Config::default(), false, false).await;
@@ -419,7 +421,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_commit_no_staged_changes_with_add() {
-        let tmp_dir = Builder::new().prefix("test_generate_commit_no_staged_changes_with_add").tempdir().unwrap();
+        let tmp_dir = Builder::new()
+            .prefix("test_generate_commit_no_staged_changes_with_add")
+            .tempdir()
+            .unwrap();
         env::set_current_dir(&tmp_dir).unwrap();
 
         let result = generate_commit(&Config::default(), true, false).await;
@@ -435,7 +440,10 @@ mod tests {
 
     #[test]
     fn test_execute_commit_success() {
-        let tmp_dir = Builder::new().prefix("test_execute_commit_success").tempdir().unwrap();
+        let tmp_dir = Builder::new()
+            .prefix("test_execute_commit_success")
+            .tempdir()
+            .unwrap();
         env::set_current_dir(&tmp_dir).unwrap();
 
         // Initialize git repository
@@ -447,17 +455,17 @@ mod tests {
 
         // Create new file
         Command::new("touch")
-        .args(["hello.py"])
-        .current_dir(&tmp_dir)
-        .output()
-        .unwrap();
+            .args(["hello.py"])
+            .current_dir(&tmp_dir)
+            .output()
+            .unwrap();
 
         // Add
         Command::new("git")
-        .args(["add", "."])
-        .current_dir(&tmp_dir)
-        .output()
-        .unwrap();
+            .args(["add", "."])
+            .current_dir(&tmp_dir)
+            .output()
+            .unwrap();
 
         let status: std::result::Result<(), anyhow::Error> = execute_commit("Test commit message");
         assert!(status.is_ok());
