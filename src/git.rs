@@ -32,13 +32,16 @@ mod tests {
     use std::env;
     use std::fs::File;
     use std::io::Write;
-    use tempfile::TempDir;
+    use tempfile::Builder;
 
     #[test]
     fn test_get_diff_with_staged_changes() -> Result<()> {
         // Create a temporary git repository
-        let temp_dir = TempDir::new()?;
-        let repo_path = temp_dir.path();
+        let tmp_dir = Builder::new()
+            .prefix("test_get_diff_with_staged_changes")
+            .tempdir()
+            .unwrap();
+        let repo_path = tmp_dir.path();
 
         // Initialize git repository
         Command::new("git")

@@ -406,7 +406,7 @@ mod tests {
     #[tokio::test]
     async fn test_generate_commit_no_staged_changes() {
         let tmp_dir = Builder::new()
-            .prefix("test_no_staged_changes")
+            .prefix("test_generate_commit_no_staged_changes")
             .tempdir()
             .unwrap();
         env::set_current_dir(&tmp_dir).unwrap();
@@ -415,13 +415,14 @@ mod tests {
 
         assert!(result.is_ok());
         assert!(matches!(result, Ok(())));
-
-        tmp_dir.close().unwrap();
     }
 
     #[tokio::test]
     async fn test_generate_commit_no_staged_changes_with_add() {
-        let tmp_dir = Builder::new().prefix("test_with_add").tempdir().unwrap();
+        let tmp_dir = Builder::new()
+            .prefix("test_generate_commit_no_staged_changes_with_add")
+            .tempdir()
+            .unwrap();
         env::set_current_dir(&tmp_dir).unwrap();
 
         let result = generate_commit(&Config::default(), true, false).await;
@@ -431,8 +432,6 @@ mod tests {
         if let Err(err) = result {
             assert_eq!(err.to_string(), "Failed to stage changes with git add");
         }
-
-        tmp_dir.close().unwrap();
     }
 
     #[test]
@@ -466,18 +465,19 @@ mod tests {
 
         let status: std::result::Result<(), anyhow::Error> = execute_commit("Test commit message");
         assert!(status.is_ok());
-
-        tmp_dir.close().unwrap();
     }
 
     #[test]
     fn test_edit_commit_message() {
-        // Set up a temporary environment for the test
-        let temp_dir = env::temp_dir();
-        let temp_file_path = temp_dir.join("aic_commit_message.txt");
+        let tmp_dir = Builder::new()
+            .prefix("test_edit_commit_message")
+            .tempdir()
+            .unwrap();
+        let tmp_file_path = tmp_dir.path().join("aic_commit_message.txt");
+        env::set_current_dir(&tmp_dir).unwrap();
 
         // Write a test commit message to the temporary file
-        fs::write(&temp_file_path, "Test commit message").unwrap();
+        fs::write(&tmp_file_path, "Test commit message").unwrap();
 
         // Mock the editor command to simulate editing
         env::set_var("EDITOR", "true");
