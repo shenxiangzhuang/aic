@@ -43,7 +43,7 @@ jobs:
       run: cargo clippy -- -D warnings
     
     - name: Run tests
-      run: RUST_TEST_THREADS=1 cargo test --verbose
+      run: cargo test --verbose -- --test-threads=1
     
     - name: Build
       run: cargo build --verbose 
