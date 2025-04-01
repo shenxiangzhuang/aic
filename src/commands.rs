@@ -246,7 +246,8 @@ pub async fn handle_config_command(config_cmd: &ConfigCommands) -> Result<()> {
             api_token,
             api_base_url,
             model,
-            default_prompt,
+            system_prompt,
+            user_prompt,
         } => {
             println!("{}", "⚙️  Updating configuration...".blue());
 
@@ -278,9 +279,15 @@ pub async fn handle_config_command(config_cmd: &ConfigCommands) -> Result<()> {
                 changes += 1;
             }
 
-            if let Some(prompt) = default_prompt {
-                config.set("default_prompt", Some(prompt.clone()))?;
-                println!("✓ Set default_prompt to: {}", prompt);
+            if let Some(system_prompt) = system_prompt {
+                config.set("system_prompt", Some(system_prompt.clone()))?;
+                println!("✓ Set system_prompt to: {}", system_prompt);
+                changes += 1;
+            }
+
+            if let Some(users_prompt) = user_prompt {
+                config.set("user_prompt", Some(users_prompt.clone()))?;
+                println!("✓ Set user_prompt to: {}", users_prompt);
                 changes += 1;
             }
 

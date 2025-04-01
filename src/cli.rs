@@ -73,9 +73,13 @@ pub enum ConfigCommands {
         #[arg(long, help = "Model to use for generating commit messages")]
         model: Option<String>,
 
-        /// Default system prompt for commit message generation
-        #[arg(long, help = "Default system prompt for commit message generation")]
-        default_prompt: Option<String>,
+        /// System prompt for commit message generation
+        #[arg(long, help = "System prompt for commit message generation")]
+        system_prompt: Option<String>,
+
+        /// User prompt for commit message generation
+        #[arg(long, help = "User prompt for commit message generation")]
+        user_prompt: Option<String>,
     },
 
     /// List all configuration values
@@ -135,6 +139,10 @@ mod tests {
             "gpt-4",
             "--api-base-url",
             "https://api.example.com",
+            "--system-prompt",
+            "Test system prompt",
+            "--user-prompt",
+            "Test user prompt",
         ]);
 
         match args.command {
@@ -142,12 +150,14 @@ mod tests {
                 api_token,
                 model,
                 api_base_url,
-                default_prompt,
+                system_prompt,
+                user_prompt,
             })) => {
                 assert_eq!(api_token, Some("test-token".to_string()));
                 assert_eq!(model, Some("gpt-4".to_string()));
                 assert_eq!(api_base_url, Some("https://api.example.com".to_string()));
-                assert!(default_prompt.is_none());
+                assert_eq!(system_prompt, Some("Test system prompt".to_string()));
+                assert_eq!(user_prompt, Some("Test user prompt".to_string()));
             }
             _ => panic!("Expected Config Setup command"),
         }
