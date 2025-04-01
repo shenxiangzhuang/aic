@@ -406,7 +406,7 @@ mod tests {
     #[tokio::test]
     async fn test_generate_commit_no_staged_changes() {
         let tmp_dir = Builder::new()
-            .prefix("test_generate_commit_no_staged_changes")
+            .prefix("test_no_staged_changes")
             .tempdir()
             .unwrap();
         env::set_current_dir(&tmp_dir).unwrap();
@@ -421,10 +421,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_commit_no_staged_changes_with_add() {
-        let tmp_dir = Builder::new()
-            .prefix("test_generate_commit_no_staged_changes_with_add")
-            .tempdir()
-            .unwrap();
+        let tmp_dir = Builder::new().prefix("test_with_add").tempdir().unwrap();
         env::set_current_dir(&tmp_dir).unwrap();
 
         let result = generate_commit(&Config::default(), true, false).await;
