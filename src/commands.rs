@@ -217,7 +217,7 @@ fn edit_commit_message(commit_message: &str) -> Result<String> {
 }
 
 /// Handle configuration commands
-pub async fn handle_config_command(config_cmd: &ConfigCommands) -> Result<()> {
+async fn handle_config_command(config_cmd: &ConfigCommands) -> Result<()> {
     match config_cmd {
         ConfigCommands::Get { key } => {
             let config = Config::load()?;
@@ -482,5 +482,147 @@ mod tests {
         let result = edit_commit_message("New test commit message");
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "New test commit message");
+    }
+
+    #[tokio::test]
+    async fn test_handle_config_command_invalid_key() {
+        let mut config = Config::default();
+        assert!(config
+            .set("random_key", Some("random_value".to_string()))
+            .is_err());
+    }
+
+    #[tokio::test]
+    async fn test_handle_config_command_get() {
+        let tmp_dir = Builder::new()
+            .prefix("test_handle_config_command_get")
+            .tempdir()
+            .unwrap();
+        let config_dir = tmp_dir.path().join(".config").join("aic");
+        fs::create_dir_all(&config_dir).expect("Failed to create config directory");
+        // Set the HOME environment variable to the temporary directory
+        env::set_var("HOME", tmp_dir.path());
+
+        // Test getting a default key
+        let result = handle_config_command(&ConfigCommands::Get {
+            key: "system_prompt".to_string(),
+        })
+        .await;
+        assert!(result.is_ok());
+
+        // Test getting a non-existent key
+        let result = handle_config_command(&ConfigCommands::Get {
+            key: "non_existent".to_string(),
+        })
+        .await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_config_command_set() {
+        let tmp_dir = Builder::new()
+            .prefix("test_handle_config_command_set")
+            .tempdir()
+            .unwrap();
+        let config_dir = tmp_dir.path().join(".config").join("aic");
+        fs::create_dir_all(&config_dir).expect("Failed to create config directory");
+        // Set the HOME environment variable to the temporary directory
+        env::set_var("HOME", tmp_dir.path());
+
+        // Test setting a value
+        let result = handle_config_command(&ConfigCommands::Set {
+            key: "model".to_string(),
+            value: Some("test_model".to_string()),
+        })
+        .await;
+        assert!(result.is_ok());
+
+        // Verify the value was set
+        let config = Config::load().unwrap();
+        assert_eq!(config.get("model"), Some(&"test_model".to_string()));
+
+        // Test unsetting a value
+        let result = handle_config_command(&ConfigCommands::Set {
+            key: "model".to_string(),
+            value: None,
+        })
+        .await;
+        assert!(result.is_ok());
+
+        // Verify the value was unset
+        let config = Config::load().unwrap();
+        assert_eq!(config.get("model"), None);
+    }
+
+    #[tokio::test]
+    async fn test_handle_config_command_setup() {
+        let tmp_dir = Builder::new()
+            .prefix("test_handle_config_command_setup")
+            .tempdir()
+            .unwrap();
+        let config_dir = tmp_dir.path().join(".config").join("aic");
+        fs::create_dir_all(&config_dir).expect("Failed to create config directory");
+        // Set the HOME environment variable to the temporary directory
+        env::set_var("HOME", tmp_dir.path());
+
+        // Test setting multiple values
+        let result = handle_config_command(&ConfigCommands::Setup {
+            api_token: Some("test_token".to_string()),
+            api_base_url: Some("https://test.api".to_string()),
+            model: Some("test-model".to_string()),
+            system_prompt: Some("test system prompt".to_string()),
+            user_prompt: Some("test user prompt".to_string()),
+        })
+        .await;
+        assert!(result.is_ok());
+
+        // Verify the values were set
+        let config = Config::load().unwrap();
+        assert_eq!(config.get("api_token"), Some(&"test_token".to_string()));
+        assert_eq!(
+            config.get("api_base_url"),
+            Some(&"https://test.api".to_string())
+        );
+        assert_eq!(config.get("model"), Some(&"test-model".to_string()));
+        assert_eq!(
+            config.get("system_prompt"),
+            Some(&"test system prompt".to_string())
+        );
+        assert_eq!(
+            config.get("user_prompt"),
+            Some(&"test user prompt".to_string())
+        );
+
+        // Test setup with no values (should not error)
+        let result = handle_config_command(&ConfigCommands::Setup {
+            api_token: None,
+            api_base_url: None,
+            model: None,
+            system_prompt: None,
+            user_prompt: None,
+        })
+        .await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_config_command_list() {
+        let tmp_dir = Builder::new()
+            .prefix("test_handle_config_command_list")
+            .tempdir()
+            .unwrap();
+        let config_dir = tmp_dir.path().join(".config").join("aic");
+        fs::create_dir_all(&config_dir).expect("Failed to create config directory");
+        // Set the HOME environment variable to the temporary directory
+        env::set_var("HOME", tmp_dir.path());
+
+        // Create a test config with some values
+        let mut config = Config::default();
+        config.set("model", Some("test_model".to_string())).unwrap();
+        config.save().unwrap();
+
+        // Test listing configuration
+        let result = handle_config_command(&ConfigCommands::List).await;
+        assert!(result.is_ok());
     }
 }
