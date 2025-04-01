@@ -401,40 +401,68 @@ mod tests {
     use crate::config::Config;
     use std::env;
     use std::fs;
+    use tempfile::Builder;
+
 
     #[tokio::test]
-    async fn test_generate_commit_no_staged_changes() {
-        // Mock the git::get_diff function to return an empty string
-        // Here, you would replace the actual call with a mock or a stub
-        // For example, you could use a trait and dependency injection
+    async fn test_generate_commit_no_staged_changes(){
+        let tmp_dir = Builder::new().prefix("test_generate_commit_no_staged_changes").tempdir().unwrap();
+        env::set_current_dir(&tmp_dir).unwrap();
 
-        let config = Config::default();
-        let result = generate_commit(&config, false, false).await;
+        let result = generate_commit(&Config::default(), false, false).await;
 
         assert!(result.is_ok());
-        // Check for expected output (e.g., "No staged changes detected")
+        assert!(matches!(result, Ok(())));
+
+        tmp_dir.close().unwrap();
     }
 
     #[tokio::test]
-    async fn test_generate_commit_with_staged_changes() {
-        // Mock the git::get_diff function to return a non-empty string
-        // Again, use a trait or dependency injection to replace the actual call
+    async fn test_generate_commit_no_staged_changes_with_add() {
+        let tmp_dir = Builder::new().prefix("test_generate_commit_no_staged_changes_with_add").tempdir().unwrap();
+        env::set_current_dir(&tmp_dir).unwrap();
 
-        let config = Config::default();
-        let result = generate_commit(&config, false, false).await;
+        let result = generate_commit(&Config::default(), true, false).await;
+        assert!(result.is_err());
 
-        assert!(result.is_ok());
-        // Check for expected output (e.g., "Generating commit message...")
+        // Match and check the error message
+        if let Err(err) = result {
+            assert_eq!(err.to_string(), "Failed to stage changes with git add");
+        }
+
+        tmp_dir.close().unwrap();
     }
 
     #[test]
     fn test_execute_commit_success() {
-        // Mock the Command::new("git") to simulate a successful commit
-        // You can use a mock library or dependency injection here
+        let tmp_dir = Builder::new().prefix("test_execute_commit_success").tempdir().unwrap();
+        env::set_current_dir(&tmp_dir).unwrap();
 
-        let status = execute_commit("Test commit message");
+        // Initialize git repository
+        Command::new("git")
+            .args(["init"])
+            .current_dir(&tmp_dir)
+            .output()
+            .unwrap();
+
+        // Create new file
+        Command::new("touch")
+        .args(["hello.py"])
+        .current_dir(&tmp_dir)
+        .output()
+        .unwrap();
+
+        // Add
+        Command::new("git")
+        .args(["add", "."])
+        .current_dir(&tmp_dir)
+        .output()
+        .unwrap();
+
+        let status: std::result::Result<(), anyhow::Error> = execute_commit("Test commit message");
         assert!(status.is_ok());
-        // Check for expected output (e.g., "Commit created successfully!")
+
+        tmp_dir.close().unwrap();
     }
 
     #[test]
@@ -449,8 +477,8 @@ mod tests {
         // Mock the editor command to simulate editing
         env::set_var("EDITOR", "true");
 
-        let result = edit_commit_message("Test commit message");
+        let result = edit_commit_message("New test commit message");
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "Test commit message");
+        assert_eq!(result.unwrap(), "New test commit message");
     }
 }
