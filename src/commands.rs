@@ -9,6 +9,7 @@ use std::env;
 use std::fs;
 use std::io::{self, Write};
 use std::process::Command;
+use tempfile::Builder;
 use uuid::Uuid;
 
 /// Generate a commit message using AI and optionally execute it
@@ -167,20 +168,12 @@ fn handle_commit_options(commit_message: &str) -> Result<()> {
 
 /// Open an editor to modify the commit message
 fn edit_commit_message(commit_message: &str) -> Result<String> {
-    // Create a unique temporary file with UUID
-    let temp_dir = env::temp_dir();
-    let temp_file_path = temp_dir.join(format!("aic_commit_message_{}.txt", Uuid::new_v4()));
+    let tmp_dir = Builder::new().prefix("edit_commit").tempdir()?;
+    let tmp_file_path = tmp_dir
+        .path()
+        .join(format!("aic_commit_message_{}.txt", Uuid::new_v4()));
 
-    // Ensure the file is removed even if the function panics
-    struct TempFileGuard(std::path::PathBuf);
-    impl Drop for TempFileGuard {
-        fn drop(&mut self) {
-            let _ = fs::remove_file(&self.0);
-        }
-    }
-    let _guard = TempFileGuard(temp_file_path.clone());
-
-    fs::write(&temp_file_path, commit_message)
+    fs::write(&tmp_file_path, commit_message)
         .context("Failed to create temporary file for editing")?;
 
     // Get the editor command - prioritize environment variable, then check for vim/vi
@@ -204,7 +197,7 @@ fn edit_commit_message(commit_message: &str) -> Result<String> {
     );
 
     let edit_status = Command::new(&editor)
-        .arg(&temp_file_path)
+        .arg(&tmp_file_path)
         .status()
         .context(format!("Failed to open editor ({})", editor))?;
 
@@ -214,7 +207,11 @@ fn edit_commit_message(commit_message: &str) -> Result<String> {
 
     // Read the modified message
     let modified_message =
-        fs::read_to_string(&temp_file_path).context("Failed to read modified commit message")?;
+        fs::read_to_string(&tmp_file_path).context("Failed to read modified commit message")?;
+
+    // drop tmp file
+    drop(tmp_file_path);
+    tmp_dir.close()?;
 
     Ok(modified_message)
 }
