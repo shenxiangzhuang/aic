@@ -72,23 +72,98 @@ impl Config {
         Ok(config_dir.join("config.toml"))
     }
 
+    fn find_project_config() -> Option<PathBuf> {
+        let mut current_dir = std::env::current_dir().ok()?;
+        
+        loop {
+            let config_path = current_dir.join(".aic/config.toml");
+            if config_path.exists() {
+                return Some(config_path);
+            }
+            
+            if !current_dir.pop() {
+                break;
+            }
+        }
+        
+        None
+    }
+
+    fn load_project_config() -> Result<Option<Self>> {
+        if let Some(config_path) = Self::find_project_config() {
+            let mut file = File::open(&config_path).context("Could not open project config file")?;
+            let mut contents = String::new();
+            file.read_to_string(&mut contents)
+                .context("Could not read project config file")?;
+
+            let config: Config = toml::from_str(&contents).context("Failed to parse project config file")?;
+            return Ok(Some(config));
+        }
+        Ok(None)
+    }
+
     pub fn load() -> Result<Self> {
+        let mut config = if let Ok(Some(project_config)) = Self::load_project_config() {
+            project_config
+        } else {
+            let config_path = Self::config_path()?;
+
+            if !config_path.exists() {
+                let default_config = Self::default();
+                default_config.save()?;
+                return Ok(default_config);
+            }
+
+            let mut file = File::open(&config_path).context("Could not open config file")?;
+            let mut contents = String::new();
+            file.read_to_string(&mut contents)
+                .context("Could not read config file")?;
+
+            toml::from_str(&contents).context("Failed to parse config file")?
+        };
+
+        // If we loaded project config, merge with global config
+        if Self::find_project_config().is_some() {
+            if let Ok(global_config) = Self::load_global() {
+                config.merge_with_global(global_config);
+            }
+        }
+
+        Ok(config)
+    }
+
+    fn load_global() -> Result<Self> {
         let config_path = Self::config_path()?;
 
         if !config_path.exists() {
-            let default_config = Self::default();
-            default_config.save()?;
-            return Ok(default_config);
+            return Ok(Self::default());
         }
 
-        let mut file = File::open(&config_path).context("Could not open config file")?;
+        let mut file = File::open(&config_path).context("Could not open global config file")?;
         let mut contents = String::new();
         file.read_to_string(&mut contents)
-            .context("Could not read config file")?;
+            .context("Could not read global config file")?;
 
-        let config: Config = toml::from_str(&contents).context("Failed to parse config file")?;
-
+        let config: Config = toml::from_str(&contents).context("Failed to parse global config file")?;
         Ok(config)
+    }
+
+    fn merge_with_global(&mut self, global: Self) {
+        if self.api_token.is_none() {
+            self.api_token = global.api_token;
+        }
+        if self.api_base_url.is_none() {
+            self.api_base_url = global.api_base_url;
+        }
+        if self.model.is_none() {
+            self.model = global.model;
+        }
+        if self.system_prompt.is_none() {
+            self.system_prompt = global.system_prompt;
+        }
+        if self.user_prompt.is_none() {
+            self.user_prompt = global.user_prompt;
+        }
     }
 
     pub fn save(&self) -> Result<()> {
