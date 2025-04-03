@@ -358,4 +358,38 @@ mod tests {
     and why, not how it changed:"
         ));
     }
+
+    #[test]
+    fn test_load_project_config() {
+        // Create a temporary directory for testing
+        let temp_dir = TempDir::new().expect("Failed to create temp directory");
+        let project_dir = temp_dir.path().join("project");
+        fs::create_dir_all(&project_dir).expect("Failed to create project directory");
+        
+        // Set current directory to the project directory
+        env::set_current_dir(&project_dir).expect("Failed to set current directory");
+
+        // Test case 1: No project config file exists
+        assert!(Config::load_project_config().unwrap().is_none());
+
+        // Test case 2: Project config file exists
+        let config_dir = project_dir.join(".aic");
+        fs::create_dir_all(&config_dir).expect("Failed to create .aic directory");
+        
+        let config_path = config_dir.join("config.toml");
+        let mut config = Config::default();
+        config.api_token = Some("test_token".to_string());
+        
+        // Write config to file
+        let toml_string = toml::to_string_pretty(&config).expect("Failed to serialize");
+        fs::write(&config_path, toml_string).expect("Failed to write config file");
+
+        // Load and verify the config
+        let loaded_config = Config::load_project_config().unwrap().unwrap();
+        assert_eq!(loaded_config.api_token, Some("test_token".to_string()));
+        assert_eq!(loaded_config.api_base_url, config.api_base_url);
+        assert_eq!(loaded_config.model, config.model);
+        assert_eq!(loaded_config.system_prompt, config.system_prompt);
+        assert_eq!(loaded_config.user_prompt, config.user_prompt);
+    }
 }
