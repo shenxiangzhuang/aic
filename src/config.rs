@@ -74,29 +74,28 @@ impl Config {
 
     fn find_project_config() -> Option<PathBuf> {
         let mut current_dir = std::env::current_dir().ok()?;
-        
         loop {
             let config_path = current_dir.join(".aic/config.toml");
             if config_path.exists() {
                 return Some(config_path);
             }
-            
             if !current_dir.pop() {
                 break;
             }
         }
-        
         None
     }
 
     fn load_project_config() -> Result<Option<Self>> {
         if let Some(config_path) = Self::find_project_config() {
-            let mut file = File::open(&config_path).context("Could not open project config file")?;
+            let mut file =
+                File::open(&config_path).context("Could not open project config file")?;
             let mut contents = String::new();
             file.read_to_string(&mut contents)
                 .context("Could not read project config file")?;
 
-            let config: Config = toml::from_str(&contents).context("Failed to parse project config file")?;
+            let config: Config =
+                toml::from_str(&contents).context("Failed to parse project config file")?;
             return Ok(Some(config));
         }
         Ok(None)
@@ -144,7 +143,8 @@ impl Config {
         file.read_to_string(&mut contents)
             .context("Could not read global config file")?;
 
-        let config: Config = toml::from_str(&contents).context("Failed to parse global config file")?;
+        let config: Config =
+            toml::from_str(&contents).context("Failed to parse global config file")?;
         Ok(config)
     }
 
