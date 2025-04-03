@@ -372,13 +372,19 @@ mod tests {
         // Test case 1: No project config file exists
         assert!(Config::load_project_config().unwrap().is_none());
 
-        // Test case 2: Project config file exists
+        // Test case 2: Project config file exists with all fields
         let config_dir = project_dir.join(".aic");
         fs::create_dir_all(&config_dir).expect("Failed to create .aic directory");
         
         let config_path = config_dir.join("config.toml");
         let mut config = Config::default();
-        config.api_token = Some("test_token".to_string());
+        
+        // Set all fields with custom values
+        config.api_token = Some("project_token".to_string());
+        config.api_base_url = Some("https://custom-api.example.com".to_string());
+        config.model = Some("gpt-4".to_string());
+        config.system_prompt = Some("Custom system prompt".to_string());
+        config.user_prompt = Some("Custom user prompt".to_string());
         
         // Write config to file
         let toml_string = toml::to_string_pretty(&config).expect("Failed to serialize");
@@ -386,10 +392,32 @@ mod tests {
 
         // Load and verify the config
         let loaded_config = Config::load_project_config().unwrap().unwrap();
-        assert_eq!(loaded_config.api_token, Some("test_token".to_string()));
-        assert_eq!(loaded_config.api_base_url, config.api_base_url);
-        assert_eq!(loaded_config.model, config.model);
-        assert_eq!(loaded_config.system_prompt, config.system_prompt);
-        assert_eq!(loaded_config.user_prompt, config.user_prompt);
+        
+        // Verify all fields are loaded correctly
+        assert_eq!(loaded_config.api_token, Some("project_token".to_string()));
+        assert_eq!(loaded_config.api_base_url, Some("https://custom-api.example.com".to_string()));
+        assert_eq!(loaded_config.model, Some("gpt-4".to_string()));
+        assert_eq!(loaded_config.system_prompt, Some("Custom system prompt".to_string()));
+        assert_eq!(loaded_config.user_prompt, Some("Custom user prompt".to_string()));
+
+        // Test case 3: Project config file with partial fields
+        let mut partial_config = Config::default();
+        partial_config.api_token = Some("partial_token".to_string());
+        partial_config.model = Some("gpt-3.5-turbo".to_string());
+        
+        // Write partial config to file
+        let toml_string = toml::to_string_pretty(&partial_config).expect("Failed to serialize");
+        fs::write(&config_path, toml_string).expect("Failed to write config file");
+
+        // Load and verify the partial config
+        let loaded_partial_config = Config::load_project_config().unwrap().unwrap();
+        
+        // Verify only the set fields are loaded
+        assert_eq!(loaded_partial_config.api_token, Some("partial_token".to_string()));
+        assert_eq!(loaded_partial_config.model, Some("gpt-3.5-turbo".to_string()));
+        // Other fields should be None
+        assert!(loaded_partial_config.api_base_url.is_none());
+        assert!(loaded_partial_config.system_prompt.is_none());
+        assert!(loaded_partial_config.user_prompt.is_none());
     }
 }
