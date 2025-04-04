@@ -58,8 +58,11 @@ impl Default for Config {
 impl Config {
     pub fn config_dir() -> Result<PathBuf> {
         let home_dir = dirs::home_dir().context("Could not find home directory")?;
-        let config_dir = home_dir.join(".config").join("aic");
-
+        let config_dir = if cfg!(target_os = "windows") {
+            return Ok(home_dir.join("AppData").join("Roaming").join("aic"));
+        } else {
+            home_dir.join(".config").join("aic")
+        };
         if !config_dir.exists() {
             fs::create_dir_all(&config_dir).context("Failed to create config directory")?;
         }
@@ -231,8 +234,10 @@ mod tests {
         let config_path = config_dir.join("config.toml");
 
         // Create and save config directly to our test location
-        let mut config = Config::default();
-        config.api_token = Some("test_token".to_string());
+        let config = Config {
+            api_token: Some("test_token".to_string()),
+            ..Default::default()
+        };
 
         // Write directly to the file to avoid any path resolution issues
         // IMPORTANT: Always flush file operations to ensure data is written to disk
@@ -268,8 +273,10 @@ mod tests {
 
     #[test]
     fn test_getter_methods() {
-        let mut config = Config::default();
-        config.api_token = Some("test_token".to_string());
+        let config = Config {
+            api_token: Some("test_token".to_string()),
+            ..Default::default()
+        };
 
         assert_eq!(config.get_api_token().unwrap(), "test_token");
         assert_eq!(config.get_api_base_url(), "https://api.openai.com");

@@ -29,9 +29,11 @@ tempfile = "3.19.1"
 [dev-dependencies]
 wiremock = "0.6.3"
 
+[profile.dev]
+debug = 0
+
 
 [profile.release]
 lto = true
 strip = true
 debug = 0
-# opt-level = "z"
