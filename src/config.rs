@@ -59,7 +59,7 @@ impl Config {
     pub fn config_dir() -> Result<PathBuf> {
         let home_dir = dirs::home_dir().context("Could not find home directory")?;
         let config_dir = if cfg!(target_os = "windows") {
-            return Ok(home_dir.join("AppData").join("Roaming").join("aic"));
+            home_dir.join("AppData").join("Roaming").join("aic")
         } else {
             home_dir.join(".config").join("aic")
         };
