@@ -29,7 +29,6 @@ tempfile = "3.19.1"
 [dev-dependencies]
 wiremock = "0.6.3"
 
-
 [profile.release]
 lto = true
 strip = true
