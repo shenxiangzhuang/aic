@@ -127,7 +127,8 @@ impl Config {
         file.read_to_string(&mut contents)
             .context("Could not read TOML config file")?;
 
-        let config: Config = toml::from_str(&contents).context("Failed to parse TOML config file")?;
+        let config: Config =
+            toml::from_str(&contents).context("Failed to parse TOML config file")?;
         Ok(config)
     }
 
