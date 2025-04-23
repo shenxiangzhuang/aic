@@ -37,7 +37,7 @@ pub fn print_config_table(config: &Config) {
 
     // System prompt (truncated if too long)
     let system_prompt = config.get_system_prompt();
-    const MAX_PROMPT_LENGTH: usize = 500;
+    const MAX_PROMPT_LENGTH: usize = 50;
     let display_system_prompt = if system_prompt.chars().count() > MAX_PROMPT_LENGTH {
         format!(
             "{}...",

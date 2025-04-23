@@ -34,7 +34,7 @@ const DEFAULT_USER_PROMPT: &str =
     the appropriate type and scope:\n\n\
     ```diff\n{}\n```";
 
-const PROJECT_CONFIG_FILENAME: &str = ".aic.yaml";
+const PROJECT_CONFIG_FILENAME: &str = ".aic.toml";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -93,7 +93,7 @@ impl Config {
         let current_dir = env::current_dir().context("Failed to get current directory")?;
         let mut dir = current_dir.as_path();
 
-        // Look for .aic.yaml in current directory and up to git repo root
+        // Look for .aic.toml in current directory and up to git repo root
         loop {
             // Check for project config file
             let config_path = dir.join(PROJECT_CONFIG_FILENAME);
@@ -120,11 +120,14 @@ impl Config {
         Ok(None)
     }
 
-    // Load a config from a YAML file
-    fn load_yaml_config(path: &PathBuf) -> Result<Self> {
-        let file = File::open(path).context("Could not open YAML config file")?;
-        let config: Config =
-            serde_yaml::from_reader(file).context("Failed to parse YAML config file")?;
+    // Load a config from a TOML file (now works for both global and project config)
+    fn load_toml_config(path: &PathBuf) -> Result<Self> {
+        let mut file = File::open(path).context("Could not open TOML config file")?;
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)
+            .context("Could not read TOML config file")?;
+
+        let config: Config = toml::from_str(&contents).context("Failed to parse TOML config file")?;
         Ok(config)
     }
 
@@ -138,14 +141,7 @@ impl Config {
             return Ok(default_config);
         }
 
-        let mut file = File::open(&config_path).context("Could not open config file")?;
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)
-            .context("Could not read config file")?;
-
-        let config: Config = toml::from_str(&contents).context("Failed to parse config file")?;
-
-        Ok(config)
+        Self::load_toml_config(&config_path)
     }
 
     // Merge two configs, with the override_config taking precedence
@@ -166,7 +162,7 @@ impl Config {
         // Try to find and load project config
         if let Some(project_config_path) = Self::find_project_config()? {
             // If project config exists, load it and merge with global config
-            let project_config = Self::load_yaml_config(&project_config_path)?;
+            let project_config = Self::load_toml_config(&project_config_path)?;
 
             // Merge configs, with project config taking precedence
             Ok(Self::merge(global_config, project_config))
@@ -409,15 +405,15 @@ mod tests {
             user_prompt: None,                            // Use global user prompt
         };
 
-        let project_config_path = project_dir.join(".aic.yaml");
-        let yaml_string = serde_yaml::to_string(&project_config).unwrap();
+        let project_config_path = project_dir.join(".aic.toml");
+        let toml_string = toml::to_string_pretty(&project_config).unwrap();
         let mut file = File::create(&project_config_path).unwrap();
-        file.write_all(yaml_string.as_bytes()).unwrap();
+        file.write_all(toml_string.as_bytes()).unwrap();
 
         // Set current directory to project dir to test
         env::set_current_dir(&project_dir).expect("Failed to change directory");
 
-        // Test finding project config - should be our .aic.yaml file
+        // Test finding project config - should be our .aic.toml file
         let found_config_path = Config::find_project_config().unwrap();
         assert!(found_config_path.is_some());
         assert_eq!(found_config_path.unwrap(), project_config_path);
@@ -426,7 +422,7 @@ mod tests {
         // test the components directly:
 
         // Test loading project config
-        let loaded_project_config = Config::load_yaml_config(&project_config_path).unwrap();
+        let loaded_project_config = Config::load_toml_config(&project_config_path).unwrap();
 
         // Verify project config values were correctly loaded
         assert_eq!(

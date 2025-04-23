@@ -11,7 +11,7 @@ A CLI tool that uses AI to generate meaningful commit messages by analyzing your
 - 🤖 **AI-Powered**: Automatically generates detailed and context-aware commit messages
 - ✏️ **Interactive Mode**: Review and edit generated messages before committing
 - 🔌 **Multiple AI Providers**: Works with OpenAI and compatible APIs
-- 🌟 **Project-level Config**: Use `.aic.yaml` for repository-specific settings
+- 🌟 **Project-level Config**: Use `.aic.toml` for repository-specific settings
 - ⚙️ **Customizable**: Configure prompts, models, and API endpoints
 
 ## Installation
@@ -166,7 +166,7 @@ aic config set model gpt-4-turbo
 aic config set default_prompt "Write detailed commit messages"
 ```
 
-You can also create a project-specific `.aic.yaml` file in your repository root. See [Project-level Configuration](#project-level-configuration) for details.
+You can also create a project-specific `.aic.toml` file in your repository root. See [Project-level Configuration](#project-level-configuration) for details.
 
 ### Configuration Files
 
@@ -226,45 +226,43 @@ In addition to global settings, you can create a project-specific configuration 
 aic config show
 ```
 
-1. Create a `.aic.yaml` file in your Git repository root 
+1. Create a `.aic.toml` file in your Git repository root 
 2. Project settings will override global settings when running `aic` in that repository
 3. The search for project config will stop at the Git repository root (directory with `.git` folder)
 
-Example `.aic.yaml`:
+Example `.aic.toml`:
 
-```yaml
-# Project-specific configuration (.aic.yaml)
+```toml
+# Project-specific configuration (.aic.toml)
 # All fields are optional - only specify what you want to override
 
 # API settings
-api_token: "your_api_token_here"  # Only add if different from global config
-api_base_url: "https://api.openai.com"
-model: "gpt-4-turbo"  # Use a different model for this project
+api_token = "your_api_token_here"  # Only add if different from global config
+api_base_url = "https://api.openai.com"
+model = "gpt-4-turbo"  # Use a different model for this project
 
 # Customized prompts for project-specific commit conventions
-system_prompt: |
-  You are a commit message expert for our project.
-  Use our project conventions:
-  1. feat: for new features
-  2. fix: for bug fixes 
-  3. docs: for documentation
-  4. refactor: for code changes that neither fix bugs nor add features
-  5. style: for changes that do not affect the meaning of the code
-  6. test: for adding or modifying tests
-  7. chore: for routine tasks, dependency updates, etc.
-  
-  Always include the scope in parentheses when possible.
-  Example: feat(auth): implement OAuth login
-  
-  For complex changes, use bullet points to describe the details.
+system_prompt = """You are a commit message expert for our project.
+Use our project conventions:
+1. feat: for new features
+2. fix: for bug fixes 
+3. docs: for documentation
+4. refactor: for code changes that neither fix bugs nor add features
+5. style: for changes that do not affect the meaning of the code
+6. test: for adding or modifying tests
+7. chore: for routine tasks, dependency updates, etc.
 
-user_prompt: |
-  Generate a commit message following our project conventions.
-  Analyze the complexity of the diff and provide appropriate detail:
-  
-  ```diff
-  {}
-  ```
+Always include the scope in parentheses when possible.
+Example: feat(auth): implement OAuth login
+
+For complex changes, use bullet points to describe the details."""
+
+user_prompt = """Generate a commit message following our project conventions.
+Analyze the complexity of the diff and provide appropriate detail:
+
+```diff
+{}
+```"""
 ```
 
 You can view the active configuration and which files are being used with:
@@ -280,15 +278,9 @@ Output example:
 
 🔍 Configuration Sources:
    Global config: /home/user/.config/aic/config.toml
-   Project config: /path/to/your/project/.aic.yaml
+   Project config: /path/to/your/project/.aic.toml
    ℹ️ Project settings override global settings
-
-⚙️  Settings:
-   api_token: your•••••
-   api_base_url: https://api.openai.com
-   model: gpt-4-turbo
-   system_prompt: You are a commit message expert for our project...
-   user_prompt: Generate a commit message for the following changes...
+...
 ```
 
 ### Environment Variables

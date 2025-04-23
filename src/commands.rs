@@ -406,7 +406,6 @@ pub async fn handle_commands(cli: &Commands, config: &Config) -> Result<()> {
 mod tests {
     use super::*;
     use crate::cli::ConfigCommands;
-    use serde_yaml;
     use std::env;
     use std::fs;
     use std::fs::File;
@@ -686,19 +685,19 @@ mod tests {
             .prefix("test_handle_config_show")
             .tempdir()
             .unwrap();
-
+        
         // Create a home directory with a global config
         let home_dir = tmp_dir.path().join("home");
         let config_dir = home_dir.join(".config").join("aic");
         fs::create_dir_all(&config_dir).expect("Failed to create config directory");
-
+        
         // Create a project directory with a project config
         let project_dir = tmp_dir.path().join("project");
         fs::create_dir_all(&project_dir).expect("Failed to create project directory");
-
+        
         // Set HOME to our test directory
         env::set_var("HOME", &home_dir);
-
+        
         // Create a global config
         let global_config = Config {
             api_token: Some("global-token".to_string()),
@@ -707,12 +706,12 @@ mod tests {
             system_prompt: Some("global system prompt".to_string()),
             user_prompt: Some("global user prompt".to_string()),
         };
-
+        
         let global_config_path = config_dir.join("config.toml");
         let toml_string = toml::to_string_pretty(&global_config).unwrap();
         let mut file = File::create(&global_config_path).unwrap();
         file.write_all(toml_string.as_bytes()).unwrap();
-
+        
         // Create a project config
         let project_config = Config {
             api_token: None,
@@ -721,15 +720,15 @@ mod tests {
             system_prompt: Some("project system prompt".to_string()),
             user_prompt: None,
         };
-
-        let project_config_path = project_dir.join(".aic.yaml");
-        let yaml_string = serde_yaml::to_string(&project_config).unwrap();
+        
+        let project_config_path = project_dir.join(".aic.toml");
+        let toml_string = toml::to_string_pretty(&project_config).unwrap();
         let mut file = File::create(&project_config_path).unwrap();
-        file.write_all(yaml_string.as_bytes()).unwrap();
-
+        file.write_all(toml_string.as_bytes()).unwrap();
+        
         // Set current directory to project
         env::set_current_dir(&project_dir).expect("Failed to change directory");
-
+        
         // Test the show command - we can only verify it executes without errors
         // Actual output would need to be captured and verified in a more complex test
         let result = handle_config_command(&ConfigCommands::Show).await;
