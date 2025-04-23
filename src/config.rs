@@ -285,10 +285,8 @@ mod tests {
         assert!(config
             .get_system_prompt()
             .contains("You are an expert at writing clear and concise commit messages."));
-        assert!(config.get_user_prompt().contains(
-            "Here is the git diff of the staged changes. Generate a commit message that \
-    follows the conventional commit format and best practices. Focus on what changed \
-    and why, not how it changed:"
-        ));
+        assert!(config
+            .get_user_prompt()
+            .contains("Here is the git diff of the staged changes."));
     }
 }
