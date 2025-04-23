@@ -1,9 +1,9 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
+use std::env;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::PathBuf;
-use std::env;
 
 const DEFAULT_SYSTEM_PROMPT: &str = "You are an expert at writing clear and concise commit messages. \
     Follow these rules strictly:\n\n\
@@ -100,7 +100,7 @@ impl Config {
             if config_path.exists() {
                 return Ok(Some(config_path));
             }
-            
+
             // Check if this is the git repository root
             let git_dir = dir.join(".git");
             if git_dir.exists() {
@@ -112,7 +112,7 @@ impl Config {
             // Go up one directory
             match dir.parent() {
                 Some(parent) => dir = parent,
-                None => break,  // Reached filesystem root
+                None => break, // Reached filesystem root
             }
         }
 
@@ -123,8 +123,8 @@ impl Config {
     // Load a config from a YAML file
     fn load_yaml_config(path: &PathBuf) -> Result<Self> {
         let file = File::open(path).context("Could not open YAML config file")?;
-        let config: Config = serde_yaml::from_reader(file)
-            .context("Failed to parse YAML config file")?;
+        let config: Config =
+            serde_yaml::from_reader(file).context("Failed to parse YAML config file")?;
         Ok(config)
     }
 
@@ -162,12 +162,12 @@ impl Config {
     pub fn load() -> Result<Self> {
         // First load the global config
         let global_config = Self::load_global_config()?;
-        
+
         // Try to find and load project config
         if let Some(project_config_path) = Self::find_project_config()? {
             // If project config exists, load it and merge with global config
             let project_config = Self::load_yaml_config(&project_config_path)?;
-            
+
             // Merge configs, with project config taking precedence
             Ok(Self::merge(global_config, project_config))
         } else {
@@ -372,20 +372,20 @@ mod tests {
     fn test_project_config() {
         // Create temporary directories for test
         let temp_dir = TempDir::new().expect("Failed to create temp directory");
-        
+
         // Create global config directory
         let home_dir = temp_dir.path().join("home");
         fs::create_dir_all(&home_dir).expect("Failed to create home directory");
         let config_dir = home_dir.join(".config").join("aic");
         fs::create_dir_all(&config_dir).expect("Failed to create config directory");
-        
-        // Create project directory 
+
+        // Create project directory
         let project_dir = temp_dir.path().join("project");
         fs::create_dir_all(&project_dir).expect("Failed to create project directory");
-        
+
         // Set HOME to our test home dir
         env::set_var("HOME", &home_dir);
-        
+
         // Create global config file
         let global_config = Config {
             api_token: Some("global-token".to_string()),
@@ -394,58 +394,76 @@ mod tests {
             system_prompt: Some("global system prompt".to_string()),
             user_prompt: Some("global user prompt".to_string()),
         };
-        
+
         let config_path = config_dir.join("config.toml");
         let toml_string = toml::to_string_pretty(&global_config).unwrap();
         let mut file = File::create(&config_path).unwrap();
         file.write_all(toml_string.as_bytes()).unwrap();
-        
+
         // Create project config file
         let project_config = Config {
-            api_token: Some("project-token".to_string()),  // Override token
-            api_base_url: None,  // Use global URL
-            model: Some("project-model".to_string()),  // Override model
-            system_prompt: Some("project system prompt".to_string()),  // Override system prompt
-            user_prompt: None,  // Use global user prompt
+            api_token: Some("project-token".to_string()), // Override token
+            api_base_url: None,                           // Use global URL
+            model: Some("project-model".to_string()),     // Override model
+            system_prompt: Some("project system prompt".to_string()), // Override system prompt
+            user_prompt: None,                            // Use global user prompt
         };
-        
+
         let project_config_path = project_dir.join(".aic.yaml");
         let yaml_string = serde_yaml::to_string(&project_config).unwrap();
         let mut file = File::create(&project_config_path).unwrap();
         file.write_all(yaml_string.as_bytes()).unwrap();
-        
+
         // Set current directory to project dir to test
         env::set_current_dir(&project_dir).expect("Failed to change directory");
-        
+
         // Test finding project config - should be our .aic.yaml file
         let found_config_path = Config::find_project_config().unwrap();
         assert!(found_config_path.is_some());
         assert_eq!(found_config_path.unwrap(), project_config_path);
-        
+
         // Instead of checking with load(), which requires the actual config to be in place,
         // test the components directly:
-        
+
         // Test loading project config
         let loaded_project_config = Config::load_yaml_config(&project_config_path).unwrap();
-        
+
         // Verify project config values were correctly loaded
-        assert_eq!(loaded_project_config.api_token, Some("project-token".to_string()));
-        assert_eq!(loaded_project_config.api_base_url, None); 
-        assert_eq!(loaded_project_config.model, Some("project-model".to_string()));
-        assert_eq!(loaded_project_config.system_prompt, Some("project system prompt".to_string()));
+        assert_eq!(
+            loaded_project_config.api_token,
+            Some("project-token".to_string())
+        );
+        assert_eq!(loaded_project_config.api_base_url, None);
+        assert_eq!(
+            loaded_project_config.model,
+            Some("project-model".to_string())
+        );
+        assert_eq!(
+            loaded_project_config.system_prompt,
+            Some("project system prompt".to_string())
+        );
         assert_eq!(loaded_project_config.user_prompt, None);
-        
+
         // Load global config for merging
         let loaded_global_config = Config::load_global_config().unwrap();
-        
+
         // Test merging configs
         let merged_config = Config::merge(loaded_global_config, loaded_project_config);
-        
+
         // Verify correct merging of values
         assert_eq!(merged_config.api_token, Some("project-token".to_string()));
-        assert_eq!(merged_config.api_base_url, Some("https://global-api.com".to_string()));
+        assert_eq!(
+            merged_config.api_base_url,
+            Some("https://global-api.com".to_string())
+        );
         assert_eq!(merged_config.model, Some("project-model".to_string()));
-        assert_eq!(merged_config.system_prompt, Some("project system prompt".to_string()));
-        assert_eq!(merged_config.user_prompt, Some("global user prompt".to_string()));
+        assert_eq!(
+            merged_config.system_prompt,
+            Some("project system prompt".to_string())
+        );
+        assert_eq!(
+            merged_config.user_prompt,
+            Some("global user prompt".to_string())
+        );
     }
 }

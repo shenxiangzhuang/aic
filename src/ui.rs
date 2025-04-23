@@ -37,9 +37,15 @@ pub fn print_config_table(config: &Config) {
 
     // System prompt (truncated if too long)
     let system_prompt = config.get_system_prompt();
-    const MAX_PROMPT_LENGTH: usize = 500;   
+    const MAX_PROMPT_LENGTH: usize = 500;
     let display_system_prompt = if system_prompt.chars().count() > MAX_PROMPT_LENGTH {
-        format!("{}...", system_prompt.chars().take(MAX_PROMPT_LENGTH).collect::<String>())
+        format!(
+            "{}...",
+            system_prompt
+                .chars()
+                .take(MAX_PROMPT_LENGTH)
+                .collect::<String>()
+        )
     } else {
         system_prompt.to_string()
     };
@@ -48,7 +54,13 @@ pub fn print_config_table(config: &Config) {
     // User prompt (truncated if too long)
     let user_prompt = config.get_user_prompt();
     let display_user_prompt = if user_prompt.chars().count() > MAX_PROMPT_LENGTH {
-        format!("{}...", user_prompt.chars().take(MAX_PROMPT_LENGTH).collect::<String>())
+        format!(
+            "{}...",
+            user_prompt
+                .chars()
+                .take(MAX_PROMPT_LENGTH)
+                .collect::<String>()
+        )
     } else {
         user_prompt.to_string()
     };
@@ -61,19 +73,28 @@ pub fn print_config_table(config: &Config) {
 pub fn print_config_sources(global_config_path: &PathBuf, project_config_path: &Option<PathBuf>) {
     println!("{}", "📋 Active Configuration:".blue().bold());
     println!();
-    
+
     // Show config file sources
     println!("{}", "🔍 Configuration Sources:".blue());
-    println!("   Global config: {}", global_config_path.display().to_string().bright_blue());
-    
+    println!(
+        "   Global config: {}",
+        global_config_path.display().to_string().bright_blue()
+    );
+
     if let Some(project_path) = project_config_path {
-        println!("   Project config: {}", project_path.display().to_string().bright_blue());
-        println!("   {} Project settings override global settings", "ℹ️".blue());
+        println!(
+            "   Project config: {}",
+            project_path.display().to_string().bright_blue()
+        );
+        println!(
+            "   {} Project settings override global settings",
+            "ℹ️".blue()
+        );
     } else {
         println!("   Project config: {}", "None".dimmed());
     }
     println!();
-    
+
     println!("{}", "⚙️  Settings:".blue());
 }
 
