@@ -91,6 +91,9 @@ pub enum ConfigCommands {
         user_prompt: Option<String>,
     },
 
+    /// Show current active configuration (merged global and project config if exists)
+    Show,
+
     /// List all configuration values
     List,
 }
