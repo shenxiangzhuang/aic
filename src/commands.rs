@@ -319,56 +319,9 @@ async fn handle_config_command(config_cmd: &ConfigCommands) -> Result<()> {
             let global_config_path = Config::config_path()?;
             let project_config_path = Config::find_project_config()?;
             
-            println!("{}", "📋 Active Configuration:".blue().bold());
-            println!();
-            
-            // Show config file sources
-            println!("{}", "🔍 Configuration Sources:".blue());
-            println!("   Global config: {}", global_config_path.display().to_string().bright_blue());
-            
-            if let Some(project_path) = project_config_path {
-                println!("   Project config: {}", project_path.display().to_string().bright_blue());
-                println!("   {} Project settings override global settings", "ℹ️".blue());
-            } else {
-                println!("   Project config: {}", "None".dimmed());
-            }
-            println!();
-            
-            // Show actual config values
-            println!("{}", "⚙️  Settings:".blue());
-            
-            // Show API token (masked)
-            if let Some(token) = &config.api_token {
-                let masked_token = if token.len() > 8 {
-                    format!("{}•••••", &token[0..4])
-                } else {
-                    "•••••••".to_string()
-                };
-                println!("   api_token: {}", masked_token);
-            } else {
-                println!("   api_token: {}", "<not set>".dimmed());
-            }
-            
-            // Print other settings
-            println!("   api_base_url: {}", config.get_api_base_url());
-            println!("   model: {}", config.get_model());
-            
-            // For long text fields like prompts, truncate the display
-            let system_prompt = config.get_system_prompt();
-            let truncated_system = if system_prompt.len() > 60 {
-                format!("{}...", &system_prompt[..57])
-            } else {
-                system_prompt.to_string()
-            };
-            println!("   system_prompt: {}", truncated_system);
-            
-            let user_prompt = config.get_user_prompt();
-            let truncated_user = if user_prompt.len() > 60 {
-                format!("{}...", &user_prompt[..57])
-            } else {
-                user_prompt.to_string()
-            };
-            println!("   user_prompt: {}", truncated_user);
+            // Use the UI module to display configuration information
+            ui::print_config_sources(&global_config_path, &project_config_path);
+            ui::print_config_table(&config);
         }
         ConfigCommands::List => {
             // This is just an alias for Show in this implementation
