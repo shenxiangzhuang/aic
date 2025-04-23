@@ -1,7 +1,7 @@
 use crate::config::Config;
 use colored::Colorize;
 use prettytable::{row, Table};
-use std::path::PathBuf;
+use std::path::Path;
 
 /// Print the application header
 pub fn print_header() {
@@ -70,7 +70,7 @@ pub fn print_config_table(config: &Config) {
 }
 
 /// Print information about configuration sources
-pub fn print_config_sources(global_config_path: &PathBuf, project_config_path: &Option<PathBuf>) {
+pub fn print_config_sources(global_config_path: &Path, project_config_path: &Option<&Path>) {
     println!("{}", "📋 Active Configuration:".blue().bold());
     println!();
 

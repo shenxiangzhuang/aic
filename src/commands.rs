@@ -320,7 +320,8 @@ async fn handle_config_command(config_cmd: &ConfigCommands) -> Result<()> {
             let project_config_path = Config::find_project_config()?;
 
             // Use the UI module to display configuration information
-            ui::print_config_sources(&global_config_path, &project_config_path);
+            let project_path_ref = project_config_path.as_deref();
+            ui::print_config_sources(&global_config_path, &project_path_ref);
             ui::print_config_table(&config);
         }
         ConfigCommands::List => {
@@ -411,7 +412,6 @@ mod tests {
     use std::fs::File;
     use std::io::Write;
     use tempfile::Builder;
-    use toml;
 
     #[tokio::test]
     async fn test_generate_commit_no_staged_changes() {
@@ -725,6 +725,13 @@ mod tests {
         let toml_string = toml::to_string_pretty(&project_config).unwrap();
         let mut file = File::create(&project_config_path).unwrap();
         file.write_all(toml_string.as_bytes()).unwrap();
+
+        // Initialize a git repository in the project directory to have a proper .git boundary
+        Command::new("git")
+            .args(["init"])
+            .current_dir(&project_dir)
+            .output()
+            .expect("Failed to init git repo");
 
         // Set current directory to project
         env::set_current_dir(&project_dir).expect("Failed to change directory");
