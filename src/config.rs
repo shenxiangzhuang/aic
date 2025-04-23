@@ -435,18 +435,21 @@ mod tests {
         // Load configs directly from files to ensure we have the exact values we expect
         let project_conf = Config::load_toml_config(&project_config_path).unwrap();
         let global_conf = Config::load_toml_config(&config_path).unwrap();
-        
+
         // Verify configs were loaded correctly
         assert_eq!(project_conf.api_base_url, None);
-        assert_eq!(global_conf.api_base_url, Some("https://global-api.com".to_string()));
-        
+        assert_eq!(
+            global_conf.api_base_url,
+            Some("https://global-api.com".to_string())
+        );
+
         // Test merging configs manually to verify merge function works correctly
         let merged = Config::merge(global_conf, project_conf);
-        
+
         // Verify correct merging of values
         assert_eq!(merged.api_token, Some("project-token".to_string()));
         assert_eq!(
-            merged.api_base_url, 
+            merged.api_base_url,
             Some("https://global-api.com".to_string()),
             "Global API URL should be used when project config doesn't specify it"
         );
@@ -455,9 +458,6 @@ mod tests {
             merged.system_prompt,
             Some("project system prompt".to_string())
         );
-        assert_eq!(
-            merged.user_prompt,
-            Some("global user prompt".to_string())
-        );
+        assert_eq!(merged.user_prompt, Some("global user prompt".to_string()));
     }
 }
