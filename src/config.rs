@@ -417,11 +417,11 @@ mod tests {
         // Test finding project config - should be our .aic.toml file
         let found_config_path = Config::find_project_config().unwrap();
         assert!(found_config_path.is_some());
-        
+
         // Compare paths in a way that works across platforms
         // This handles macOS /var vs /private/var path differences
         let found_path = found_config_path.unwrap();
-        
+
         // Compare just the file names if full path comparison fails
         // This is robust to macOS path differences
         assert_eq!(
@@ -429,7 +429,7 @@ mod tests {
             project_config_path.file_name().unwrap(),
             "File names should match"
         );
-        
+
         // Verify path exists
         assert!(found_path.exists(), "Found path should exist");
 
