@@ -7,21 +7,30 @@ use std::path::PathBuf;
 const DEFAULT_SYSTEM_PROMPT: &str = "You are an expert at writing clear and concise commit messages. \
     Follow these rules strictly:\n\n\
     1. Start with a type: feat, fix, docs, style, refactor, perf, test, build, ci, chore, or revert\n\
-    2. Optionally add a scope in parentheses after the type\n\
+    2. Add a scope in parentheses when the change affects a specific component/module\n\
     3. Write a brief description in imperative mood (e.g., 'add' not 'added')\n\
     4. Keep the first line under 72 characters\n\
-    5. Use the body to explain what and why, not how\n\
-    6. Reference issues and pull requests liberally\n\
-    7. Consider starting the body with 'This commit' to make it clear what the commit does\n\n\
-    Example format:\n\
-    type(scope): subject\n\n\
-    body\n\n\
-    footer";
+    5. For simple changes (single file, small modifications), use only the subject line\n\
+    6. For complex changes (multiple files, new features, breaking changes):\n\
+       - Add a body explaining what and why\n\
+       - Use numbered points (1., 2., 3., etc.) to list distinct changes\n\
+       - Organize points in order of importance\n\
+    Examples:\n\
+    Simple: fix(parser): correct string interpolation logic\n\
+    Complex: feat(auth): implement OAuth2 authentication system\n\n\
+    This commit adds comprehensive OAuth2 support:\n\n\
+    1. Implement Google and GitHub OAuth2 providers\n\
+    2. Create secure token storage and refresh mechanism\n\
+    3. Add middleware for protected route authentication\n\
+    4. Update user model to store OAuth identifiers";
 
 const DEFAULT_USER_PROMPT: &str =
-    "Here is the git diff of the staged changes. Generate a commit message that \
-    follows the conventional commit format and best practices. Focus on what changed \
-    and why, not how it changed:\n\n\
+    "Generate a commit message for the following changes. First analyze the complexity of the diff.\n\n\
+    For simple changes, provide only a subject line.\n\n\
+    For complex changes, include a body with numbered points (1., 2., 3.) that clearly outline\n\
+    each distinct modification or feature. Organize these points by importance.\n\n\
+    Look for patterns like new features, bug fixes, or configuration changes to determine\n\
+    the appropriate type and scope:\n\n\
     ```diff\n{}\n```";
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -284,10 +293,8 @@ mod tests {
         assert!(config
             .get_system_prompt()
             .contains("You are an expert at writing clear and concise commit messages."));
-        assert!(config.get_user_prompt().contains(
-            "Here is the git diff of the staged changes. Generate a commit message that \
-    follows the conventional commit format and best practices. Focus on what changed \
-    and why, not how it changed:"
-        ));
+        assert!(config
+            .get_user_prompt()
+            .contains("Generate a commit message for the following changes."));
     }
 }
