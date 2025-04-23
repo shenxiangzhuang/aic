@@ -10,18 +10,19 @@ const DEFAULT_SYSTEM_PROMPT: &str = "You are an expert at writing clear and conc
     2. Optionally add a scope in parentheses after the type\n\
     3. Write a brief description in imperative mood (e.g., 'add' not 'added')\n\
     4. Keep the first line under 72 characters\n\
-    5. Use the body to explain what and why, not how\n\
-    6. Reference issues and pull requests liberally\n\
-    7. Consider starting the body with 'This commit' to make it clear what the commit does\n\n\
-    Example format:\n\
+    5. For simple changes, the subject line alone is sufficient\n\
+    6. For more complex changes only, add a blank line followed by a body explaining what and why (not how)\n\
+    Example format for simple changes:\n\
+    type(scope): subject\n\n\
+    Example format for complex changes:\n\
     type(scope): subject\n\n\
     body\n\n\
     footer";
 
 const DEFAULT_USER_PROMPT: &str =
     "Here is the git diff of the staged changes. Generate a commit message that \
-    follows the conventional commit format and best practices. Focus on what changed \
-    and why, not how it changed:\n\n\
+    follows the conventional commit format. Use only the subject line for simple changes, \
+    and include body/footer only when necessary to explain complex changes or reference issues:\n\n\
     ```diff\n{}\n```";
 
 #[derive(Debug, Serialize, Deserialize)]
