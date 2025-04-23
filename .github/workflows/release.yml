@@ -30,7 +30,7 @@ jobs:
       run: cargo clippy -- -D warnings
     
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --verbose -- --test-threads=1
     
     - name: Build
       run: cargo build --locked --release --verbose
