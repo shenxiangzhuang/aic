@@ -26,6 +26,15 @@ pub struct Cli {
     )]
     pub auto_commit: bool,
 
+    /// Execute the git push command automatically after a successful commit
+    #[arg(
+        short = 'p',
+        long = "push",
+        help = "Execute the git push command automatically after a successful commit",
+        long_help = "When provided, automatically execute 'git push' after a successful commit."
+    )]
+    pub auto_push: bool,
+
     #[command(subcommand)]
     pub command: Option<Commands>,
 }
@@ -100,11 +109,23 @@ mod tests {
         assert!(args.command.is_none());
         assert!(!args.auto_commit);
         assert!(!args.auto_add);
+        assert!(!args.auto_push);
+    }
+
+    #[test]
+    fn test_auto_flags() {
+        let args = Cli::parse_from(["program", "-a", "-c", "-p"]);
+        assert!(args.auto_add);
+        assert!(args.auto_commit);
+        assert!(args.auto_push);
     }
 
     #[test]
     fn test_config_get() {
         let args = Cli::parse_from(["program", "config", "get", "api_token"]);
+        assert!(!args.auto_add);
+        assert!(!args.auto_commit);
+        assert!(!args.auto_push);
 
         match args.command {
             Some(Commands::Config(ConfigCommands::Get { key })) => {
@@ -117,6 +138,9 @@ mod tests {
     #[test]
     fn test_config_set() {
         let args = Cli::parse_from(["program", "config", "set", "api_token", "test-token"]);
+        assert!(!args.auto_add);
+        assert!(!args.auto_commit);
+        assert!(!args.auto_push);
 
         match args.command {
             Some(Commands::Config(ConfigCommands::Set { key, value })) => {
@@ -144,6 +168,9 @@ mod tests {
             "--user-prompt",
             "Test user prompt",
         ]);
+        assert!(!args.auto_add);
+        assert!(!args.auto_commit);
+        assert!(!args.auto_push);
 
         match args.command {
             Some(Commands::Config(ConfigCommands::Setup {

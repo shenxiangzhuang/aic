@@ -26,6 +26,27 @@ pub fn get_diff() -> Result<String> {
     Ok(diff)
 }
 
+/// Push committed changes to the remote repository
+pub fn push_changes() -> Result<()> {
+    println!("{} Running 'git push'...", "▶".green());
+    let output = Command::new("git")
+        .arg("push")
+        .output()
+        .context("Failed to execute git push command.")?;
+
+    if !output.status.success() {
+        let error_message = String::from_utf8_lossy(&output.stderr).into_owned();
+        eprintln!(
+            "{}",
+            format!("⚠️  Failed to push changes: {}", error_message).red()
+        );
+        anyhow::bail!("Git push failed");
+    }
+
+    println!("{} Changes pushed successfully.", "✔".green());
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

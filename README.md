@@ -88,6 +88,9 @@ aic -a
 # Generate and commit automatically
 aic -ac
 
+# Generate, commit, and push automatically
+aic -acp
+
 # Generate commit message (with staged changes)
 aic
 ```
@@ -124,11 +127,23 @@ aic -c
 # Stage all changes and commit automatically
 aic -ac
 
+# Generate commit message and push after committing
+aic -p
+
+# Stage all changes, generate commit message and push after committing
+aic -ap
+
+# Generate, commit, and push automatically
+aic -cp
+
+# Stage all changes, commit, and push automatically 
+aic -acp
+
 # Test API connection
 aic ping
 ```
 
-> **Note**: The `-a` flag will stage ALL changes in your working directory with `git add .`. The `-c` flag will commit directly without confirmation. Use these flags with caution, especially in repositories with multiple changes.
+> **Note**: The `-a` flag will stage ALL changes in your working directory with `git add .`. The `-c` flag will commit directly without confirmation. The `-p` flag will push changes to remote after a successful commit (either automatic or manual). Use these flags with caution, especially in repositories with multiple changes.
 
 ### Configuration Management
 
@@ -171,6 +186,15 @@ aic
 
 # Stage and commit automatically
 aic -ac
+
+# Stage changes and push after manual commit
+aic -ap
+
+# Stage, commit and push automatically (all-in-one)
+aic -acp
+
+# Commit and push changes that are already staged
+aic -cp
 ```
 
 ### Configuration Examples

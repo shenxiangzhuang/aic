@@ -24,7 +24,8 @@ async fn main() -> Result<()> {
         }
         None => {
             // No subcommand provided, default to generate behavior using cli directly
-            commands::generate_commit(&config, cli.auto_add, cli.auto_commit).await?;
+            commands::generate_commit(&config, cli.auto_add, cli.auto_commit, cli.auto_push)
+                .await?;
         }
     }
 
