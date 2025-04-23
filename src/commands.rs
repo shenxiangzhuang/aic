@@ -86,7 +86,7 @@ pub async fn generate_commit(config: &Config, auto_add: bool, auto_commit: bool,
             git::push_changes()?;
         }
     } else {
-        handle_commit_options(&commit_message)?;
+        handle_commit_options(&commit_message, auto_push)?;
     }
 
     Ok(())
@@ -117,7 +117,7 @@ fn execute_commit(commit_message: &str) -> Result<()> {
 }
 
 /// Handle interactive commit options (execute/modify/cancel)
-fn handle_commit_options(commit_message: &str) -> Result<()> {
+fn handle_commit_options(commit_message: &str, auto_push: bool) -> Result<()> {
     // Present options including a new "modify" option
     print!("\n{} ", "Execute this commit? [Y/m/n]:".yellow().bold());
     io::stdout().flush()?;
@@ -129,6 +129,10 @@ fn handle_commit_options(commit_message: &str) -> Result<()> {
     if input.is_empty() || input.starts_with('y') {
         // Execute directly
         execute_commit(commit_message)?;
+        // Push if auto_push is enabled and commit was successful
+        if auto_push {
+            git::push_changes()?;
+        }
     } else if input.starts_with('m') {
         // Modify the message before committing
         println!(
@@ -153,6 +157,10 @@ fn handle_commit_options(commit_message: &str) -> Result<()> {
 
         if status.success() {
             println!("{}", "🎉 Commit created successfully!".green().bold());
+            // Push if auto_push is enabled and commit was successful
+            if auto_push {
+                git::push_changes()?;
+            }
         } else {
             println!("{}", "❌ Git commit command failed:".red().bold());
             if let Some(code) = status.code() {

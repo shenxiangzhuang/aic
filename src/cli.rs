@@ -31,8 +31,7 @@ pub struct Cli {
         short = 'p',
         long = "push",
         help = "Execute the git push command automatically after a successful commit",
-        long_help = "When provided, automatically execute 'git push' after a successful commit. Requires --commit flag.",
-        requires = "auto_commit" // Ensure --push requires --commit
+        long_help = "When provided, automatically execute 'git push' after a successful commit."
     )]
     pub auto_push: bool,
 
@@ -121,20 +120,6 @@ mod tests {
         assert!(args.auto_push);
     }
 
-    #[test]
-    fn test_push_requires_commit() {
-        let result = Cli::try_parse_from(["program", "-p"]);
-        assert!(result.is_err());
-        let err_msg = result.err().unwrap().to_string();
-        println!("err_msg: {}", err_msg);
-        assert!(err_msg.contains("--commit"));
-
-        let result_ok = Cli::try_parse_from(["program", "-c", "-p"]);
-        assert!(result_ok.is_ok());
-        let args = result_ok.unwrap();
-        assert!(args.auto_commit);
-        assert!(args.auto_push);
-    }
 
     #[test]
     fn test_config_get() {
