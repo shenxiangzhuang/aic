@@ -120,7 +120,6 @@ mod tests {
         assert!(args.auto_push);
     }
 
-
     #[test]
     fn test_config_get() {
         let args = Cli::parse_from(["program", "config", "get", "api_token"]);

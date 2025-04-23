@@ -36,7 +36,10 @@ pub fn push_changes() -> Result<()> {
 
     if !output.status.success() {
         let error_message = String::from_utf8_lossy(&output.stderr).into_owned();
-        eprintln!("{}", format!("⚠️  Failed to push changes: {}", error_message).red());
+        eprintln!(
+            "{}",
+            format!("⚠️  Failed to push changes: {}", error_message).red()
+        );
         anyhow::bail!("Git push failed");
     }
 

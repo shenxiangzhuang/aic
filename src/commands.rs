@@ -13,7 +13,12 @@ use tempfile::Builder;
 use uuid::Uuid;
 
 /// Generate a commit message using AI and optionally execute it and push
-pub async fn generate_commit(config: &Config, auto_add: bool, auto_commit: bool, auto_push: bool) -> Result<()> {
+pub async fn generate_commit(
+    config: &Config,
+    auto_add: bool,
+    auto_commit: bool,
+    auto_push: bool,
+) -> Result<()> {
     // Print header
     ui::print_header();
 
