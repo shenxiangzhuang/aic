@@ -295,6 +295,6 @@ mod tests {
             .contains("You are an expert at writing clear and concise commit messages."));
         assert!(config
             .get_user_prompt()
-            .contains("Here is the git diff of the staged changes."));
+            .contains("Generate a commit message for the following changes."));
     }
 }
