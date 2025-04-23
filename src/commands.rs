@@ -12,8 +12,8 @@ use std::process::Command;
 use tempfile::Builder;
 use uuid::Uuid;
 
-/// Generate a commit message using AI and optionally execute it
-pub async fn generate_commit(config: &Config, auto_add: bool, auto_commit: bool) -> Result<()> {
+/// Generate a commit message using AI and optionally execute it and push
+pub async fn generate_commit(config: &Config, auto_add: bool, auto_commit: bool, auto_push: bool) -> Result<()> {
     // Print header
     ui::print_header();
 
@@ -81,6 +81,10 @@ pub async fn generate_commit(config: &Config, auto_add: bool, auto_commit: bool)
 
     if auto_commit {
         execute_commit(&commit_message)?;
+        // Push changes if auto_push is enabled
+        if auto_push {
+            git::push_changes()?;
+        }
     } else {
         handle_commit_options(&commit_message)?;
     }
@@ -408,7 +412,7 @@ mod tests {
             .unwrap();
         env::set_current_dir(&tmp_dir).unwrap();
 
-        let result = generate_commit(&Config::default(), false, false).await;
+        let result = generate_commit(&Config::default(), false, false, false).await;
 
         assert!(result.is_ok());
         assert!(matches!(result, Ok(())));
@@ -422,7 +426,7 @@ mod tests {
             .unwrap();
         env::set_current_dir(&tmp_dir).unwrap();
 
-        let result = generate_commit(&Config::default(), true, false).await;
+        let result = generate_commit(&Config::default(), true, false, false).await;
         assert!(result.is_err());
 
         // Match and check the error message
