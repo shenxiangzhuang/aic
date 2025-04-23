@@ -306,34 +306,28 @@ async fn handle_config_command(config_cmd: &ConfigCommands) -> Result<()> {
             }
 
             if changes == 0 {
-                println!(
-                    "{}",
-                    "⚠️  No configuration values were provided to set.".yellow()
-                );
-                println!("{}", "Usage examples:".bright_blue());
-                println!("  aic config setup --api-token <TOKEN> --api-base-url <URL>");
-                println!(
-                    "  aic config setup --model gpt-4-turbo --api-base-url https://api.openai.com"
-                );
+                println!("{}", "ℹ️ No changes made to configuration.".blue());
             } else {
-                println!(
-                    "{}",
-                    "🎉 Configuration updated successfully!".green().bold()
-                );
+                println!("{}", "✨ Configuration updated successfully.".green());
             }
         }
-        ConfigCommands::List => {
-            println!("{}", "⚙️  Current Configuration:".green().bold());
+        ConfigCommands::Show => {
+            // Load configuration
             let config = Config::load()?;
 
-            ui::print_config_table(&config);
+            // Get paths for the different config files
+            let global_config_path = Config::config_path()?;
+            let project_config_path = Config::find_project_config()?;
 
-            println!("\n{}", "📁 Configuration file location:".blue());
-            if let Ok(path) = Config::config_path() {
-                println!("   {}", path.display());
-            } else {
-                println!("   <unknown>");
-            }
+            // Use the UI module to display configuration information
+            let project_path_ref = project_config_path.as_deref();
+            ui::print_config_sources(&global_config_path, &project_path_ref);
+            ui::print_config_table(&config);
+        }
+        ConfigCommands::List => {
+            // This is just an alias for Show in this implementation
+            // Use Box::pin to avoid infinitely sized future from recursion
+            Box::pin(handle_config_command(&ConfigCommands::Show)).await?;
         }
     }
 
@@ -412,9 +406,11 @@ pub async fn handle_commands(cli: &Commands, config: &Config) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::Config;
+    use crate::cli::ConfigCommands;
     use std::env;
     use std::fs;
+    use std::fs::File;
+    use std::io::Write;
     use tempfile::Builder;
 
     #[tokio::test]
@@ -501,8 +497,8 @@ mod tests {
         assert_eq!(result.unwrap(), "New test commit message");
     }
 
-    #[tokio::test]
-    async fn test_handle_config_command_invalid_key() {
+    #[test]
+    fn test_handle_config_command_invalid_key() {
         let mut config = Config::default();
         assert!(config
             .set("random_key", Some("random_value".to_string()))
@@ -517,8 +513,18 @@ mod tests {
             .unwrap();
         let config_dir = tmp_dir.path().join(".config").join("aic");
         fs::create_dir_all(&config_dir).expect("Failed to create config directory");
+
         // Set the HOME environment variable to the temporary directory
         env::set_var("HOME", tmp_dir.path());
+
+        // Set current directory to test directory
+        env::set_current_dir(tmp_dir.path()).expect("Failed to change directory");
+
+        // Initialize a git repository to have a proper .git boundary
+        Command::new("git")
+            .args(["init"])
+            .output()
+            .expect("Failed to init git repo");
 
         // Test getting a default key
         let result = handle_config_command(&ConfigCommands::Get {
@@ -543,8 +549,18 @@ mod tests {
             .unwrap();
         let config_dir = tmp_dir.path().join(".config").join("aic");
         fs::create_dir_all(&config_dir).expect("Failed to create config directory");
+
         // Set the HOME environment variable to the temporary directory
         env::set_var("HOME", tmp_dir.path());
+
+        // Set current directory to test directory
+        env::set_current_dir(tmp_dir.path()).expect("Failed to change directory");
+
+        // Initialize a git repository to have a proper .git boundary
+        Command::new("git")
+            .args(["init"])
+            .output()
+            .expect("Failed to init git repo");
 
         // Test setting a value
         let result = handle_config_command(&ConfigCommands::Set {
@@ -579,8 +595,18 @@ mod tests {
             .unwrap();
         let config_dir = tmp_dir.path().join(".config").join("aic");
         fs::create_dir_all(&config_dir).expect("Failed to create config directory");
+
         // Set the HOME environment variable to the temporary directory
         env::set_var("HOME", tmp_dir.path());
+
+        // Set current directory to test directory
+        env::set_current_dir(tmp_dir.path()).expect("Failed to change directory");
+
+        // Initialize a git repository to have a proper .git boundary
+        Command::new("git")
+            .args(["init"])
+            .output()
+            .expect("Failed to init git repo");
 
         // Test setting multiple values
         let result = handle_config_command(&ConfigCommands::Setup {
@@ -630,8 +656,18 @@ mod tests {
             .unwrap();
         let config_dir = tmp_dir.path().join(".config").join("aic");
         fs::create_dir_all(&config_dir).expect("Failed to create config directory");
+
         // Set the HOME environment variable to the temporary directory
         env::set_var("HOME", tmp_dir.path());
+
+        // Set current directory to test directory
+        env::set_current_dir(tmp_dir.path()).expect("Failed to change directory");
+
+        // Initialize a git repository to have a proper .git boundary
+        Command::new("git")
+            .args(["init"])
+            .output()
+            .expect("Failed to init git repo");
 
         // Create a test config with some values
         let mut config = Config::default();
@@ -640,6 +676,66 @@ mod tests {
 
         // Test listing configuration
         let result = handle_config_command(&ConfigCommands::List).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_config_command_show() {
+        let tmp_dir = Builder::new()
+            .prefix("test_handle_config_show")
+            .tempdir()
+            .unwrap();
+
+        // Create a home directory with a global config
+        let home_dir = tmp_dir.path().join("home");
+        let config_dir = home_dir.join(".config").join("aic");
+        fs::create_dir_all(&config_dir).expect("Failed to create config directory");
+
+        // Create a project directory with a project config
+        let project_dir = tmp_dir.path().join("project");
+        fs::create_dir_all(&project_dir).expect("Failed to create project directory");
+
+        // Set HOME to our test directory
+        env::set_var("HOME", &home_dir);
+
+        // Create a global config
+        let global_config = Config {
+            api_token: Some("global-token".to_string()),
+            api_base_url: Some("https://global-api.com".to_string()),
+            model: Some("global-model".to_string()),
+            system_prompt: Some("global system prompt".to_string()),
+            user_prompt: Some("global user prompt".to_string()),
+        };
+
+        let global_config_path = config_dir.join("config.toml");
+        let toml_string = toml::to_string_pretty(&global_config).unwrap();
+        let mut file = File::create(&global_config_path).unwrap();
+        file.write_all(toml_string.as_bytes()).unwrap();
+
+        // Create a project config
+        let project_config = Config {
+            api_token: None,
+            api_base_url: None,
+            model: Some("project-model".to_string()),
+            system_prompt: Some("project system prompt".to_string()),
+            user_prompt: None,
+        };
+
+        let project_config_path = project_dir.join(".aic.toml");
+        let toml_string = toml::to_string_pretty(&project_config).unwrap();
+        let mut file = File::create(&project_config_path).unwrap();
+        file.write_all(toml_string.as_bytes()).unwrap();
+
+        // Create .git directory in the project to make it a git repo root
+        let git_dir = project_dir.join(".git");
+        fs::create_dir_all(&git_dir).expect("Failed to create .git directory");
+
+        // Set current directory to project
+        env::set_current_dir(&project_dir).expect("Failed to change directory");
+
+        // Test the show command - we can only verify it executes without errors
+        // Actual output would need to be captured and verified in a more complex test
+        let result = handle_config_command(&ConfigCommands::Show).await;
         assert!(result.is_ok());
     }
 }

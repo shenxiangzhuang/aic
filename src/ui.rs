@@ -1,6 +1,7 @@
 use crate::config::Config;
 use colored::Colorize;
 use prettytable::{row, Table};
+use std::path::Path;
 
 /// Print the application header
 pub fn print_header() {
@@ -36,8 +37,15 @@ pub fn print_config_table(config: &Config) {
 
     // System prompt (truncated if too long)
     let system_prompt = config.get_system_prompt();
-    let display_system_prompt = if system_prompt.chars().count() > 12 {
-        format!("{}...", system_prompt.chars().take(12).collect::<String>())
+    const MAX_PROMPT_LENGTH: usize = 50;
+    let display_system_prompt = if system_prompt.chars().count() > MAX_PROMPT_LENGTH {
+        format!(
+            "{}...",
+            system_prompt
+                .chars()
+                .take(MAX_PROMPT_LENGTH)
+                .collect::<String>()
+        )
     } else {
         system_prompt.to_string()
     };
@@ -45,14 +53,49 @@ pub fn print_config_table(config: &Config) {
 
     // User prompt (truncated if too long)
     let user_prompt = config.get_user_prompt();
-    let display_user_prompt = if user_prompt.chars().count() > 12 {
-        format!("{}...", user_prompt.chars().take(12).collect::<String>())
+    let display_user_prompt = if user_prompt.chars().count() > MAX_PROMPT_LENGTH {
+        format!(
+            "{}...",
+            user_prompt
+                .chars()
+                .take(MAX_PROMPT_LENGTH)
+                .collect::<String>()
+        )
     } else {
         user_prompt.to_string()
     };
     table.add_row(row!["user_prompt", display_user_prompt]);
 
     table.printstd();
+}
+
+/// Print information about configuration sources
+pub fn print_config_sources(global_config_path: &Path, project_config_path: &Option<&Path>) {
+    println!("{}", "📋 Active Configuration:".blue().bold());
+    println!();
+
+    // Show config file sources
+    println!("{}", "🔍 Configuration Sources:".blue());
+    println!(
+        "   Global config: {}",
+        global_config_path.display().to_string().bright_blue()
+    );
+
+    if let Some(project_path) = project_config_path {
+        println!(
+            "   Project config: {}",
+            project_path.display().to_string().bright_blue()
+        );
+        println!(
+            "   {} Project settings override global settings",
+            "ℹ️".blue()
+        );
+    } else {
+        println!("   Project config: {}", "None".dimmed());
+    }
+    println!();
+
+    println!("{}", "⚙️  Settings:".blue());
 }
 
 #[cfg(test)]
