@@ -54,7 +54,7 @@ Output:
 ⚙️  Current Configuration:
 ┌───────────────┬──────────────────────────────────────┐
 │ api_token     │ your•••••                            │
-│ api_base_url  │ https://api.openai.com/v1               │
+│ api_base_url  │ https://api.openai.com/v1            │
 │ model         │ gpt-3.5-turbo                        │
 │ system_prompt │ You are an expert at writing...      │
 │ user_prompt   │ Here is the git diff of the staged...│
