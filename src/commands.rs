@@ -352,7 +352,7 @@ async fn ping_api(config: &Config) -> Result<()> {
 
     // Create a simple test request
     let client = reqwest::Client::new();
-    let endpoint = format!("{}/v1/chat/completions", api_base_url.trim_end_matches('/'));
+    let endpoint = format!("{}/chat/completions", api_base_url.trim_end_matches('/'));
 
     let request = serde_json::json!({
         "model": model,

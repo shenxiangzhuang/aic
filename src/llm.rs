@@ -51,7 +51,7 @@ pub async fn generate_commit_message(
     };
 
     // Construct the full API endpoint URL
-    let endpoint = format!("{}/v1/chat/completions", api_base_url.trim_end_matches('/'));
+    let endpoint = format!("{}/chat/completions", api_base_url.trim_end_matches('/'));
 
     // Send the request to the API
     let response = client
@@ -115,7 +115,7 @@ mod tests {
 
         // Set up the mock expectation
         Mock::given(method("POST"))
-            .and(path("/v1/chat/completions"))
+            .and(path("/chat/completions"))
             .and(header("Authorization", "Bearer test_token"))
             .and(header("Content-Type", "application/json"))
             .respond_with(ResponseTemplate::new(200).set_body_json(mock_response))
@@ -171,7 +171,7 @@ mod tests {
 
         // Set up the mock to return an error
         Mock::given(method("POST"))
-            .and(path("/v1/chat/completions"))
+            .and(path("/chat/completions"))
             .respond_with(ResponseTemplate::new(401).set_body_string("Unauthorized"))
             .mount(&mock_server)
             .await;

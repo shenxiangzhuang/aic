@@ -59,7 +59,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             api_token: None,
-            api_base_url: Some("https://api.openai.com".to_string()),
+            api_base_url: Some("https://api.openai.com/v1".to_string()),
             model: Some("gpt-3.5-turbo".to_string()),
             system_prompt: Some(DEFAULT_SYSTEM_PROMPT.to_string()),
             user_prompt: Some(DEFAULT_USER_PROMPT.to_string()),
@@ -225,7 +225,7 @@ impl Config {
     pub fn get_api_base_url(&self) -> &str {
         self.api_base_url
             .as_deref()
-            .unwrap_or("https://api.openai.com")
+            .unwrap_or("https://api.openai.com/v1")
     }
 
     pub fn get_model(&self) -> &str {
@@ -255,7 +255,7 @@ mod tests {
         assert!(config.api_token.is_none());
         assert_eq!(
             config.api_base_url.as_deref(),
-            Some("https://api.openai.com")
+            Some("https://api.openai.com/v1")
         );
         assert_eq!(config.model.as_deref(), Some("gpt-3.5-turbo"));
         assert!(config.system_prompt.is_some());
@@ -359,7 +359,7 @@ mod tests {
         };
 
         assert!(empty_config.get_api_token().is_err());
-        assert_eq!(empty_config.get_api_base_url(), "https://api.openai.com");
+        assert_eq!(empty_config.get_api_base_url(), "https://api.openai.com/v1");
         assert_eq!(empty_config.get_model(), "gpt-3.5-turbo");
         assert_eq!(empty_config.get_system_prompt(), DEFAULT_SYSTEM_PROMPT);
         assert_eq!(empty_config.get_user_prompt(), DEFAULT_USER_PROMPT);
