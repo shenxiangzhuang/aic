@@ -56,12 +56,12 @@ pub async fn generate_commit_message(
     // Send the request to the API
     let response = client
         .post(&endpoint)
-        .header("Authorization", format!("Bearer {}", api_token))
+        .header("Authorization", format!("Bearer {api_token}"))
         .header("Content-Type", "application/json")
         .json(&request)
         .send()
         .await
-        .context(format!("Failed to send request to API at {}", endpoint))?;
+        .context(format!("Failed to send request to API at {endpoint}"))?;
 
     // Parse the response
     let response_status = response.status();
