@@ -78,7 +78,7 @@ pub async fn generate_commit(
 
     // Format git commit command for display
     let escaped_message = commit_message.replace("\"", "\\\"");
-    let commit_command = format!("git commit -m \"{}\"", escaped_message);
+    let commit_command = format!("git commit -m \"{escaped_message}\"");
 
     // Only print the command, not the message again
     println!("{}", "📋 Commit command:".green().bold());
@@ -114,7 +114,7 @@ fn execute_commit(commit_message: &str) -> Result<()> {
     } else {
         println!("{}", "❌ Git commit command failed:".red().bold());
         if let Some(code) = status.code() {
-            println!("Exit code: {}", code);
+            println!("Exit code: {code}");
         }
     }
 
@@ -169,7 +169,7 @@ fn handle_commit_options(commit_message: &str, auto_push: bool) -> Result<()> {
         } else {
             println!("{}", "❌ Git commit command failed:".red().bold());
             if let Some(code) = status.code() {
-                println!("Exit code: {}", code);
+                println!("Exit code: {code}");
             }
         }
     } else if input.starts_with('n') {
@@ -216,7 +216,7 @@ fn edit_commit_message(commit_message: &str) -> Result<String> {
     let edit_status = Command::new(&editor)
         .arg(&tmp_file_path)
         .status()
-        .context(format!("Failed to open editor ({})", editor))?;
+        .context(format!("Failed to open editor ({editor})"))?;
 
     if !edit_status.success() {
         return Err(anyhow::anyhow!("Editor exited with non-zero status"));
@@ -251,7 +251,7 @@ async fn handle_config_command(config_cmd: &ConfigCommands) -> Result<()> {
             config.set(key, value.clone())?;
 
             if let Some(val) = value {
-                println!("✓ Set {} to: {}", key.bright_blue(), val);
+                println!("✓ Set {} to: {val}", key.bright_blue());
             } else {
                 println!("✓ Unset {}", key.bright_blue());
             }
@@ -277,31 +277,31 @@ async fn handle_config_command(config_cmd: &ConfigCommands) -> Result<()> {
                 } else {
                     "•••••••".to_string()
                 };
-                println!("✓ Set api_token to: {}", masked_token);
+                println!("✓ Set api_token to: {masked_token}");
                 changes += 1;
             }
 
             if let Some(url) = api_base_url {
                 config.set("api_base_url", Some(url.clone()))?;
-                println!("✓ Set api_base_url to: {}", url);
+                println!("✓ Set api_base_url to: {url}");
                 changes += 1;
             }
 
             if let Some(model_name) = model {
                 config.set("model", Some(model_name.clone()))?;
-                println!("✓ Set model to: {}", model_name);
+                println!("✓ Set model to: {model_name}");
                 changes += 1;
             }
 
             if let Some(system_prompt) = system_prompt {
                 config.set("system_prompt", Some(system_prompt.clone()))?;
-                println!("✓ Set system_prompt to: {}", system_prompt);
+                println!("✓ Set system_prompt to: {system_prompt}");
                 changes += 1;
             }
 
             if let Some(users_prompt) = user_prompt {
                 config.set("user_prompt", Some(users_prompt.clone()))?;
-                println!("✓ Set user_prompt to: {}", users_prompt);
+                println!("✓ Set user_prompt to: {users_prompt}");
                 changes += 1;
             }
 
@@ -352,7 +352,7 @@ async fn ping_api(config: &Config) -> Result<()> {
 
     // Create a simple test request
     let client = reqwest::Client::new();
-    let endpoint = format!("{}/v1/chat/completions", api_base_url.trim_end_matches('/'));
+    let endpoint = format!("{}/chat/completions", api_base_url.trim_end_matches('/'));
 
     let request = serde_json::json!({
         "model": model,
@@ -367,7 +367,7 @@ async fn ping_api(config: &Config) -> Result<()> {
     // Send the request
     let response = client
         .post(&endpoint)
-        .header("Authorization", format!("Bearer {}", api_token))
+        .header("Authorization", format!("Bearer {api_token}"))
         .header("Content-Type", "application/json")
         .json(&request)
         .send()
@@ -382,8 +382,8 @@ async fn ping_api(config: &Config) -> Result<()> {
         println!("{}", "✨ Configuration is working correctly.".green());
     } else {
         println!("{}", "❌ API connection failed:".red().bold());
-        println!("Status: {}", status);
-        println!("Error: {}", response_text);
+        println!("Status: {status}");
+        println!("Error: {response_text}");
     }
 
     Ok(())

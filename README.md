@@ -26,7 +26,7 @@ cargo install aic
 
 ```bash
 # For OpenAI
-aic config setup --api-token your_openai_token --api-base-url https://api.openai.com --model gpt-3.5-turbo
+aic config setup --api-token your_openai_token --api-base-url https://api.openai.com/v1 --model gpt-3.5-turbo
 
 # For DeepSeek
 aic config setup --api-token your_deepseek_token --api-base-url https://api.deepseek.com --model deepseek-chat
@@ -37,7 +37,7 @@ Output:
 ```bash
 ⚙️  Updating configuration...
 ✓ Set api_token to: your•••••
-✓ Set api_base_url to: https://api.openai.com
+✓ Set api_base_url to: https://api.openai.com/v1
 ✓ Set model to: gpt-3.5-turbo
 🎉 Configuration updated successfully!
 ```
@@ -54,7 +54,7 @@ Output:
 ⚙️  Current Configuration:
 ┌───────────────┬──────────────────────────────────────┐
 │ api_token     │ your•••••                            │
-│ api_base_url  │ https://api.openai.com               │
+│ api_base_url  │ https://api.openai.com/v1            │
 │ model         │ gpt-3.5-turbo                        │
 │ system_prompt │ You are an expert at writing...      │
 │ user_prompt   │ Here is the git diff of the staged...│
@@ -74,7 +74,7 @@ Output:
 
 ```
 🔍 Testing API connection...
-🌐 API Base URL: https://api.openai.com
+🌐 API Base URL: https://api.openai.com/v1
 🤖 Model: gpt-3.5-turbo
 ✅ API connection successful!
 ✨ Configuration is working correctly.
@@ -97,6 +97,7 @@ aic
 ```
 
 Example output:
+
 ```
 ╭─────────────────────────────────────╮
 │     AI Commit Message Generator     │
@@ -137,7 +138,7 @@ aic -ap
 # Generate, commit, and push automatically
 aic -cp
 
-# Stage all changes, commit, and push automatically 
+# Stage all changes, commit, and push automatically
 aic -acp
 
 # Test API connection
@@ -150,7 +151,7 @@ aic ping
 
 ```bash
 # Quick setup
-aic config setup --api-token <TOKEN> --api-base-url https://api.openai.com --model gpt-4-turbo
+aic config setup --api-token <TOKEN> --api-base-url https://api.openai.com/v1 --model gpt-4-turbo
 
 # View current settings
 aic config list
@@ -173,6 +174,7 @@ You can also create a project-specific `.aic.toml` file in your repository root.
 #### Global Configuration
 
 The global configuration is stored in TOML format at:
+
 - Linux/macOS: `~/.config/aic/config.toml`
 - Windows: `%APPDATA%\aic\config.toml`
 
@@ -180,9 +182,9 @@ Example `config.toml`:
 
 ```toml
 api_token = "your_api_token_here"
-api_base_url = "https://api.openai.com"
+api_base_url = "https://api.openai.com/v1"
 model = "gpt-3.5-turbo"
-system_prompt = """You are an expert at writing clear and concise commit messages. 
+system_prompt = """You are an expert at writing clear and concise commit messages.
 Follow these rules strictly:
 
 1. Start with a type: feat, fix, docs, style, refactor, perf, test, build, ci, chore, or revert
@@ -226,7 +228,7 @@ In addition to global settings, you can create a project-specific configuration 
 aic config show
 ```
 
-1. Create a `.aic.toml` file in your Git repository root 
+1. Create a `.aic.toml` file in your Git repository root
 2. Project settings will override global settings when running `aic` in that repository
 3. The search for project config will stop at the Git repository root (directory with `.git` folder)
 
@@ -238,14 +240,14 @@ Example `.aic.toml`:
 
 # API settings
 api_token = "your_api_token_here"  # Only add if different from global config
-api_base_url = "https://api.openai.com"
+api_base_url = "https://api.openai.com/v1"
 model = "gpt-4-turbo"  # Use a different model for this project
 
 # Customized prompts for project-specific commit conventions
 system_prompt = """You are a commit message expert for our project.
 Use our project conventions:
 1. feat: for new features
-2. fix: for bug fixes 
+2. fix: for bug fixes
 3. docs: for documentation
 4. refactor: for code changes that neither fix bugs nor add features
 5. style: for changes that do not affect the meaning of the code
