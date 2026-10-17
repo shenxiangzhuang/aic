@@ -216,10 +216,16 @@ impl Config {
         }
     }
 
-    pub fn get_api_token(&self) -> Result<&String> {
-        self.api_token.as_ref().context(
+    pub fn get_api_token(&self) -> Result<String> {
+        let token = self.api_token.as_ref().context(
             "API token not found. Please set it using 'aic config set api_token YOUR_TOKEN'",
-        )
+        )?;
+        match file_ref_path(token) {
+            Some(path) => fs::read_to_string(path)
+                .with_context(|| format!("api_token references unreadable file '{path}'"))
+                .map(|contents| contents.trim().to_string()),
+            None => Ok(token.clone()),
+        }
     }
 
     pub fn get_api_base_url(&self) -> &str {
@@ -240,6 +246,20 @@ impl Config {
 
     pub fn get_user_prompt(&self) -> &str {
         self.user_prompt.as_deref().unwrap_or(DEFAULT_USER_PROMPT)
+    }
+}
+
+fn file_ref_path(value: &str) -> Option<&str> {
+    value.strip_prefix("{file:")?.strip_suffix('}')
+}
+
+pub(crate) fn mask_token(value: &str) -> String {
+    if file_ref_path(value).is_some() {
+        value.to_string()
+    } else if value.len() > 8 {
+        format!("{}•••••", &value[0..4])
+    } else {
+        "•••••••".to_string()
     }
 }
 
@@ -459,5 +479,23 @@ mod tests {
             Some("project system prompt".to_string())
         );
         assert_eq!(merged.user_prompt, Some("global user prompt".to_string()));
+    }
+
+    #[test]
+    fn test_api_token_file_ref() {
+        let dir = TempDir::new().unwrap();
+        let resolve = |value: &str| {
+            Config {
+                api_token: Some(value.to_string()),
+                ..Default::default()
+            }
+            .get_api_token()
+        };
+        let ref_of = |name: &str| format!("{{file:{}}}", dir.path().join(name).display());
+        assert_eq!(resolve("sk-plain-token").unwrap(), "sk-plain-token");
+        fs::write(dir.path().join("token"), "sk-from-file\n").unwrap();
+        assert_eq!(resolve(&ref_of("token")).unwrap(), "sk-from-file");
+        let error = resolve(&ref_of("nope")).unwrap_err();
+        assert!(error.to_string().contains("unreadable file"), "{error}");
     }
 }

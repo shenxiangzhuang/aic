@@ -1,5 +1,5 @@
 use crate::cli::{Commands, ConfigCommands};
-use crate::config::Config;
+use crate::config::{mask_token, Config};
 use crate::git;
 use crate::llm;
 use crate::ui;
@@ -70,7 +70,7 @@ pub async fn generate_commit(
         &diff,
         &system_prompt,
         &user_prompt,
-        api_token,
+        &api_token,
         &api_base_url,
         &model_name,
     )
@@ -272,12 +272,7 @@ async fn handle_config_command(config_cmd: &ConfigCommands) -> Result<()> {
             if let Some(token) = api_token {
                 config.set("api_token", Some(token.clone()))?;
                 // Don't print the full token for security
-                let masked_token = if token.len() > 8 {
-                    format!("{}•••••", &token[0..4])
-                } else {
-                    "•••••••".to_string()
-                };
-                println!("✓ Set api_token to: {masked_token}");
+                println!("✓ Set api_token to: {}", mask_token(token));
                 changes += 1;
             }
 

@@ -213,7 +213,9 @@ the appropriate type and scope:
 
 ### Configuration Options
 
-- `api_token`: Your API authentication token
+- `api_token`: Your API authentication token, or `{file:/absolute/path}` to read it from a
+  file (whitespace is trimmed). `aic config show` prints the path unmasked since it isn't a secret.
+  On Windows wrap the value in single quotes, as TOML reads `\U` in `C:\Users\...` as an escape.
 - `api_base_url`: API endpoint (default: OpenAI)
 - `model`: AI model to use (default: gpt-3.5-turbo)
 - `system_prompt`: System prompt that defines the AI's role and commit message format

@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::{mask_token, Config};
 use colored::Colorize;
 use prettytable::{row, Table};
 use std::path::Path;
@@ -20,14 +20,9 @@ pub fn print_config_table(config: &Config) {
     table.add_row(row!["Setting", "Value"]);
 
     // API Token (with masking for security)
-    let token_display = if let Some(token) = config.get("api_token") {
-        if token.len() > 8 {
-            format!("{}•••••", &token[0..4])
-        } else {
-            "•••••••".to_string()
-        }
-    } else {
-        "<not set>".to_string()
+    let token_display = match config.get("api_token") {
+        Some(token) => mask_token(token),
+        None => "<not set>".to_string(),
     };
     table.add_row(row!["api_token", token_display]);
 
